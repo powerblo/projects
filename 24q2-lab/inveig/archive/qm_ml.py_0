@@ -1,0 +1,256 @@
+import torch, torch.nn as nn
+import numpy as np, matplotlib.pyplot as plt
+from tqdm.auto import tqdm
+
+# implement some way to track units and scaling constants
+# check if python lsp is working?
+
+def seq_mlp(init, mlp, fin, act):
+    modules = [nn.Linear(init, mlp[0]), act]
+    for i in range(len(mlp) - 1):
+        modules.append(nn.Linear(mlp[i], mlp[i+1]))
+        modules.append(act)
+
+    modules.append(nn.Linear(mlp[-1], fin)) #self.spl for spline
+
+    return modules
+
+def nan_hook(self, inp, output):
+    if not isinstance(output, tuple):
+        outputs = [output]
+    else:
+        outputs = output
+
+    for i, out in enumerate(outputs):
+        nan_mask = torch.isnan(out)
+        if nan_mask.any():
+            print(outputs)
+            print("In ", self.__class__.__name__)
+            raise RuntimeError(f"Found NAN in output {i}")
+
+#|%%--%%| <7VzySwJshN|r2Tqi3WSMQ>
+
+class EvalEig(nn.Module):
+    def __init__(self, eval_para):
+        super().__init__()
+        self.para = eval_para
+        self.rm = self.para['r_max']
+        self.rn = self.para['r_dsc']
+        
+        self.r_dsc = torch.linspace(-self.rm, self.rm, self.rn)
+
+        if eval_para['precision'] == 64:
+            torch.set_default_dtype(torch.float64)
+
+        self.loss_l = [[], [], [], [], [], []] # loss_0 : total loss
+    
+    def graph_evc(self, evl, evc):
+        colors = plt.cm.viridis(np.linspace(0, 1, self.xn_tr))
+        plt.figure()
+        for i in range(int(self.xn_tr)):
+            plt.plot(self.x_dsc, evc[i], label = 'ev : ' + str(round(evl[i].item(), 2)), color = colors[i])
+        plt.legend()
+        plt.show()
+
+    def potential_radial_tr(self):
+        if self.para['ptl_form'] == "coulomb":
+            return -self.para['para_1']/(torch.abs(self.r_dsc)+1e-3)
+        else:
+            return torch.zeros(self.rn)
+    
+    def disc_eigs(self):
+        xd = 2*self.rm / (self.rn-1)
+        l_max = self.para['l_max']
+        l_tns = torch.linspace(0, l_max, l_max)
+
+        lap = (-2*torch.eye(self.rn) + torch.diag(torch.ones(self.rn-1),1) + torch.diag(torch.ones(self.rn-1),-1)) / xd**2 # circle graph
+        lap_matrix = lap * torch.ones(l_max).view(l_max,1,1)
+
+        ptl = self.potential_radial_tr()
+        ptl_matrix = ptl * torch.ones(l_max).view(l_max,1,1)
+        
+        ptl_eff_matrix = torch.diag(1/self.r_dsc**2) * (l_tns*(l_tns+1)).view(l_max,1,1)
+
+        hml = (-lap_matrix + ptl_eff_matrix + self.para['para_0']*ptl_matrix)
+        print(torch.diagonal(hml, dim1=-2,dim2=-1))
+        evl, _ = torch.linalg.eigh(hml)
+        # bound state condition
+        # evl[evl>0] = torch.tensor(0)
+
+        return evl
+
+class InvEig(EvalEig):
+    def __init__(self, energy, hp):
+        super().__init__(hp)
+        self.evl = energy
+
+        # model
+        modules = seq_mlp(init = self.evl.shape[0], mlp = hp['mlp'],
+                          fin = self.xn, act = nn.ReLU())
+
+        self.mlp = nn.Sequential(*modules)
+
+    def loss_calc(self, ptl_md, evl_md, e):
+        loss = torch.tensor([0.])
+        # l1loss
+        loss1 = torch.sum(torch.abs(self.evl - evl_md)/(torch.linspace(1,self.evl.shape[0],self.evl.shape[0])**hp['lossdamp'])*torch.abs(self.evl[0]))
+        # consider loss that increases weight for ground state
+
+        # variation; 'smoothness'
+        loss2 = torch.std(ptl_md)
+
+        # potential ground energy condition
+        loss3 = torch.abs(torch.max(self.evl[0] - ptl_md))/torch.abs(self.evl[0])
+        
+        # smoothness
+        loss4 = torch.sum((ptl_md[1:]-ptl_md[:-1])**2)/self.evl[0]**2
+        
+        # boundary condition (fixed at 0)
+        loss5 = (ptl_md[0]**2 + ptl_md[-1]**2)/self.evl[0]**2
+        
+        # value at center; send to -infty
+        loss6 = ptl_md[self.xn//2]/torch.abs(self.evl[0])
+
+        # symmetric
+        loss7 = torch.sum(torch.abs(ptl_md - ptl_md.flip(0)))
+
+        loss = self.hp['reg_1'] * loss1 + \
+               self.hp['reg_3'] * loss3 + \
+               self.hp['reg_4'] * loss4 + \
+               self.hp['reg_5'] * loss5 + \
+               self.hp['reg_6'] * loss6 + \
+               self.hp['reg_7'] * loss7
+               #self.hp['reg_4'] * loss4 #/ ((e+1)/self.hp['epoch'])**1.5 
+
+        self.loss_l[0].append(loss.item())
+        self.loss_l[1].append(loss1.item())
+        self.loss_l[2].append(loss2.item())
+        self.loss_l[3].append(loss3.item())
+        self.loss_l[4].append(loss4.item())
+        self.loss_l[5].append(loss5.item())
+
+        return loss
+
+    def loss_plot(self, index, ignore):
+        print(self.loss_l[index][-1])
+        plt.figure() #l1loss
+        plt.plot(range(hp['epoch']-ignore), self.loss_l[index][ignore:])
+        plt.show()
+
+    def forward(self, ptl_func = None):
+        # obtain potential via model
+        # via mlp
+        ptl_md = self.mlp(self.evl)
+        
+        # calculate learned energy
+        evl_md = self.disc_eigs(ptl_md)
+
+        return ptl_md, evl_md
+
+
+#|%%--%%| <r2Tqi3WSMQ|2mIh88NaIt>
+
+eval_para = {
+        # evaluation model
+        'r_max' : 100, # horizontal scaling of model
+        'r_dsc' : 200, # computation time for diagonalisation; consider sparse matrix
+        'para_0' : 1, # laplacian multiplier; vertical scaling of model
+        'l_max' : 20, # maximum l_max to evaluate radial schrodinger upto
+
+        # potential specifics
+        'ptl_form' : 'coulomb',
+        'para_1' : 1, # potential multiplier; 2m/hbar^2 * Ze in desired units
+
+        # model specifics
+        'precision' : 64, # 32 or 64 bit
+        }
+
+model_para = {
+        # model specifics
+        'mlp' : [1000, 500, 1000],
+
+        # training
+        'epoch' : 1000,
+        'lr' : 1e-2,
+        }
+
+#|%%--%%| <2mIh88NaIt|LUnjgpMfmV>
+
+eval = EvalEig(eval_para)
+
+#evl = disc_eigs(ptl, xn)
+evl_tr = eval.disc_eigs()
+
+print(evl_tr)
+
+
+#|%%--%%| <LUnjgpMfmV|GObqqyxWon>
+
+#eval.graph_evc(evl_tr, evc)
+
+#|%%--%%| <GObqqyxWon|pdlxDeW0Eu>
+
+model = InvEig(evl_tr, hp)
+#for submodule in model.modules():
+#    submodule.register_forward_hook(nan_hook)
+
+        'precision' : 64, # 32 or 64 bit
+optimiser = torch.optim.Adam(model.parameters(), lr = hp['lr'])
+
+epochs = hp['epoch']
+
+pbar = tqdm(range(epochs), desc='Progress', total=epochs, leave = True, position=0, colour='blue')
+
+for e in range(epochs):
+    #ptl_md, evl_md = model(hp['true'])
+    with torch.autograd.detect_anomaly():
+        #ptl_md, evl_md, prob_md, para_0 = model()
+        ptl_md, evl_md = model()
+        if e == 0:
+            ptl_init = ptl_md
+            evl_init = evl_md
+        # constraints via loss : l1, stdev, ge-ptl
+        # constraints via model : smooth, symmetry, bc
+        loss = model.loss_calc(ptl_md, evl_md, e)
+        
+        #print(torch.sum(prob_md))
+
+        optimiser.zero_grad()
+        loss.backward()
+        optimiser.step()
+
+    pbar.update()
+
+#|%%--%%| <pdlxDeW0Eu|AjssDzCQlV>
+
+# l11loss
+model.loss_plot(index = 1, ignore = 5)
+
+#|%%--%%| <AjssDzCQlV|wiXrFRTr6y>
+
+# energy true - model
+plt.figure()
+plt.plot(range(eval.xn_tr), evl_tr, label='true', color = 'red')
+#plt.plot(range(eval.xn_tr), evl_init.detach(), label='model_i', color = 'green')
+plt.plot(range(eval.xn_tr), evl_md.detach(), label='model', color = 'blue')
+plt.legend()
+plt.show()
+
+#|%%--%%| <wiXrFRTr6y|UGcCcK0clZ>
+
+# ptl true - model
+plt.figure()
+plt.plot(eval.r_dsc, eval.potential_radial_tr(), label='true', color = 'red')
+#plt.plot(eval.x_dsc, ptl_init.squeeze(0).detach(), label='model_i', color = 'green')
+plt.plot(eval.r_dsc, ptl_md.squeeze(0).detach(), label='model', color = 'blue')
+#plt.plot(eval.x_spl, torch.cat((para_0, torch.tensor([0.]))).detach(), color = 'red', marker = 'o')
+plt.legend()
+plt.show()
+
+#|%%--%%| <UGcCcK0clZ|Vi3de8aRVr>
+
+print(nn.L1Loss()(eval.ptl_tr(hp['true']), ptl_md))
+
+#|%%--%%| <Vi3de8aRVr|tgFRr8WZLe>
+
+

@@ -1,0 +1,193 @@
+\documentclass{beamer}
+%
+% Choose how your presentation looks.
+%
+% For more themes, color themes and font themes, see:
+% http://deic.uab.es/~iblanes/beamer_gallery/index_by_theme.html
+%
+\mode<presentation>
+{
+  \usetheme{default}      % or try Darmstadt, Madrid, Warsaw, ...
+  \usecolortheme{default} % or try albatross, beaver, crane, ...
+  \usefonttheme{default}  % or try serif, structurebold, ...
+  \setbeamertemplate{navigation symbols}{}
+  \setbeamertemplate{caption}[numbered]
+} 
+
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+\usepackage{amsmath, amssymb, physics, tikz, tikz-feynman, quantikz}
+\usepackage{graphicx, subcaption}
+
+\title{Tensor Networks : Session 1}
+\author{Hanse Kim}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+%\begin{frame}{What is a Tensor?}
+%	\begin{itemize}
+%		\item Tensor in physics : something that \textit{transforms like a tensor}
+%			\begin{itemize}
+%			\item Arises from a more mathematical definition
+%			\end{itemize}
+%
+%			\item Vector space ${ V }$ : define as rank (1,0)-tensor
+%				\begin{itemize}
+%			\item Transformations ${ GL(V) }$ are induced by coordinate transformations
+%			\end{itemize}
+%			\item Linear operators ${ V^{*} }$ : space of all functionals ${ V\to \mathbb{R}  }$, define as rank (0,1)-tensor
+%			\item Rank ${ (p,q) }$-tensors built from this structure (via \textbf{tensor products})
+%				\begin{itemize}
+%					\item Transformation properties are also induced
+%				\item ex. Metric tensor ${ g_{\mu \nu } }$ : (0,2)-tensor
+%				\end{itemize}
+%	\end{itemize}
+%\end{frame}
+
+\begin{frame}{What is a Tensor?}
+\begin{itemize}
+	\item Tensor in physics : something that \textit{transforms like a tensor}
+		\begin{itemize}
+		\item Arises from a more mathematical definition
+		\item We are interested in a more simple definition
+		\end{itemize}
+
+		\item Vector space ${ V }$ : define as rank 1 tensor
+		\item \textbf{Tensor product} : rank ${ n }$ ${ \otimes  }$ rank ${ m }$ ${ = }$ rank ${ (m+n) }$ tensor
+			\begin{itemize}
+			\item Components : product; ${ (A \otimes B)_{ij}=A_{i}B_{j} }$
+			\item cf. Cartesian product; do not confuse rank and dimensionality!
+			\end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Diagrammatic Notation}
+	\begin{itemize}
+		\item Indices are written as legs
+		\begin{itemize}
+		\item Number of legs = rank
+		\item Dimensionality of each index is not explicitly shown
+		\item Can express components of tensor by writing indices
+		\end{itemize}
+	\item Product between tensors : write tensors side-by-side
+	\item Contract over two indices (of same dimensionality) by connecting indices
+	\end{itemize}
+\end{frame}
+
+\begin{frame}{What are Tensor Networks?}
+	\begin{itemize}
+	\item Consider many-body quantum system; ex. 1D lattice of $N$ spin-$1/2$ particles
+		\begin{itemize}
+			\item Each site has $p=2$ \textbf{degrees of freedom}
+		\end{itemize}
+	\item General state vector : specify components for all possible configurations
+	\item State vector is given by specifying components of a \textbf{tensor}
+	\[
+		\ket{\Psi } =\sum_{\substack{s_{j}=\{+,-\}\\j=1\dots N}}^{} T_{s_{1}\cdots s_{N}}\ket{s_{1}}\otimes \cdots \ket{s_{N}}
+	\]
+	\begin{itemize}
+	\item Total ${ p^{N} }$ degrees of freedom; exponential in ${ N }$
+	\end{itemize}
+	\end{itemize}	
+\end{frame}
+
+\begin{frame}{What are Tensor Networks?}
+	\begin{itemize}
+		\item Limited class of state vectors : specify \textbf{state vectors} at each site; take \textbf{tensor product} of all vectors
+			\begin{align}
+		\ket{\Psi } &= \left( \sum_{s_{1}=\{+,-\}}^{} A_{s_{1}}\ket{s_{1}} \right) \otimes \cdots \left( \sum_{s_{p}=\{+,-\}}^{} A_{s_{p}}\ket{s_{p}} \right) \\  
+					&= \sum_{\substack{s_{j}=\{+,-\}\\j=1\dots N}}^{} \tilde{T}_{s_{1}\cdots s_{N}}\ket{s_{1}}\otimes \cdots \ket{s_{N}} \\
+	\end{align}
+	\item State vector is also a \textbf{tensor}; not all components are 'independent'!
+		\begin{itemize}
+		\item Total ${ pN }$ degrees of freedom; polynomial in N
+		\item Does not generate the entire Hilbert space
+		\end{itemize}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}{What are Tensor Networks?}
+	\begin{itemize}
+		\item Limited class of state vectors : specify \textbf{tensors} at each site; \textbf{contract} indices except one
+		\item Most general kind of tensor network
+			\begin{itemize}
+				\item Dimensionality of contracted indices : \textbf{bond dimension} ${ D }$
+				\item Typically degrees of freedom polynomial in ${ N }$
+			\end{itemize}
+		\item Examples
+			\begin{itemize}
+				\item \textbf{Matrix Product State} : 1D array of tensors
+				\item \textbf{Projected Entangled Pair States} : 2D array of tensors
+			\end{itemize}
+		
+	\end{itemize}
+\end{frame}
+
+\begin{frame}{Why Tensor Networks?}
+	\begin{itemize}
+	\item Using tensor networks : considering only wave functions that can be written in this form
+	\item Why limit ourselves to tensor network states?
+	\end{itemize}
+\end{frame}
+
+\begin{frame}{Why Tensor Networks?}
+	\begin{itemize}
+		\item \textbf{Natural representation of entanglement}
+			\begin{itemize}
+			\item TNs are natural representations for many-body wave functions that are visually intuitive
+			\item TN structure means components of wavefunction are not 'independent'
+			\item This dependence characterises entanglement present in states
+			\end{itemize}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}{Why Tensor Networks?}
+	\begin{itemize}
+		\item \textbf{Hilbert space is 'too large'}
+			\begin{itemize}
+			\item (Fortunately,) not all states in the Hilbert space are relevant
+				\begin{itemize}
+			\item Why? Locality (states of 'neighbouring' particles are not completely independent)
+			\item In particular, low energy states follows the entropy area law
+			\end{itemize}
+		\item Number of states typically are polynomial in ${ N }$
+			\end{itemize}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}{Some General Notes}
+	\begin{itemize}
+	\item Complexity of contracting a TN is order dependent
+		\begin{itemize}
+		\item Only relevant if bond dimensions are nonuniform
+		\item Expectation values of TNs is a contraction of two TNs (+ some operators)
+		\end{itemize}
+	\item Given a chosen form of TN, there is still choice of bond dimension ${ D }$ that can be made
+		\begin{itemize}
+		\item For ${ D }$ sufficiently large, ex. MPS can eventually cover the whole Hilbert space
+		\item For ${ D =1}$, no entanglement is present; used in mean field theory
+		\end{itemize}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}{Physical Properties : MPS}
+	\begin{itemize}
+		\item \textbf{MPS} : 1D array of tensors
+		\begin{itemize}
+		\item Two examples; open BC, periodic BC
+		\item One tensor per site in many-body system; open indices represents physical degrees of freedom
+		\end{itemize}
+	\item MPS are dense : any Hilbert state can be represented by increasing ${ D }$
+	\item Area law : entanglement entropy is constant wrt. ${ L }$
+	\end{itemize}
+\end{frame}
+
+
+\end{document}
+

@@ -1,0 +1,219 @@
+% Welcome to the simple DIS curriculum vitae template!
+% Please delete any sections that do not apply to your past experiences. We do not expect that applicants will have itmes for all of the sections included here. You can also rename or revise sections to best fit with your personal accomplishments.
+% The final document should not exceed 3 pages
+
+\documentclass[a4paper,11pt]{article}
+
+\usepackage{latexsym}
+\usepackage[empty]{fullpage}
+\usepackage{titlesec}
+\usepackage{marvosym}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{fancyhdr} \usepackage[english]{babel}
+\usepackage{tabularx}
+\usepackage{multicol, hyperref}
+\input{glyphtounicode}
+
+\usepackage[T1]{fontenc}
+
+
+\pagestyle{fancy}
+\fancyhf{} 
+\fancyfoot{}
+\setlength{\footskip}{10pt}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\addtolength{\oddsidemargin}{0.0in}
+\addtolength{\evensidemargin}{0.0in}
+\addtolength{\textwidth}{0.0in}
+\addtolength{\topmargin}{0.2in}
+\addtolength{\textheight}{0.0in}
+
+
+\urlstyle{same}
+
+%\raggedbottom
+\raggedright
+\setlength{\tabcolsep}{0in}
+
+\titleformat{\section}{
+  \it\vspace{3pt}
+}{}{0em}{}[\color{black}\titlerule\vspace{-5pt}]
+
+\pdfgentounicode=1
+
+\newcommand{\resumeItem}[1]{
+  \item{
+    {#1 \vspace{-4pt}}
+  }
+}
+
+\newcommand{\resumeSubheadingA}[4]{
+  \vspace{-2pt}\item
+    \begin{tabular*}{0.97\textwidth}[t]{l@{\extracolsep{\fill}}r}
+      \textbf{#1} & #2 \\
+      \textit{\small #3} & \textit{\small #4} \\
+    \end{tabular*}\vspace{-10pt}
+}
+
+\newcommand{\resumeSubheading}[4]{
+  \vspace{-2pt}\item
+    \begin{tabular*}{0.97\textwidth}[t]{l@{\extracolsep{\fill}}r}
+      \textbf{#1} & #2 \\
+      %\textit{\small #3} & \textit{\small #4} \\
+    \end{tabular*}\vspace{-10pt}
+}
+
+
+\newcommand{\resumeSubItem}[1]{\resumeItem{#1}\vspace{-3pt}}
+\renewcommand\labelitemii{$\vcenter{\hbox{\tiny$\bullet$}}$}
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0.15in, label={}]}
+\newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
+\newcommand{\resumeItemListStart}{\begin{itemize}}
+\newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-2pt}}
+
+\begin{document}
+
+
+\begin{center}
+    {\huge Hanse Kim} \\ \vspace{0pt}
+    {(+82) 10 7668 6057 powerblo@gist.ac.kr}
+\end{center}
+
+\section{Education}
+\resumeSubHeadingListStart
+
+    \resumeSubheadingA
+{Gwangju Institute of Science and Technology}{Spring 2019 - Current}
+        {BSc, Physics and Photonic Sciences Major, Mathematics Minor}{Gwangju, South Korea}
+        \resumeItemListStart
+        \small\resumeItem{TGPA : 3.69/4.0, Major GPA : 3.83/4.0 (24/06/02)}
+        \small\resumeItem{Total Percentage : 96.5}
+        \resumeItemListEnd
+    \resumeSubheadingA
+        {University of California, Berkeley}{Summer 2023}
+        {Summer Semester via Study Abroad Program}{Berkeley, US}
+        \resumeSubheadingA
+        {University of California, Berkeley}{Spring 2024}
+        {Exchange Program via Study Abroad Program}{Berkeley, US}
+
+\resumeSubHeadingListEnd
+
+
+\section{Research Experience}
+\resumeSubHeadingListStart
+
+\resumeSubheading
+        {Holographic Correlation Functions}{March 2023 - December 2023}
+        {University, Company or Organization}{City, Country}
+      \resumeItemListStart
+        \small\resumeItem{Calculate holographic correlation functions using AdS/CFT with Mathematica}
+        \resumeItem{Supervised by \href{https://inspirehep.net/authors/994258}{Prof. Chanyong Park}}
+    \resumeItemListEnd
+
+\resumeSubheading   
+        {First-last Passage Correspondences}{September 2023 -- December 2023}
+        {University, Company or Organization}{City, Country}
+      \resumeItemListStart
+        \small\resumeItem{Investigate first-last passage in diffusion problems}
+        \resumeItem{Parallel programming and GPU acceleration with PyTorch}
+        \resumeItem{Supervised by \href{https://clabs.gist.ac.kr/~chwang/}{Prof. Chiok Hwang}}
+    \resumeItemListEnd
+
+%\resumeSubheading  
+%        {Quantum Information }{July 2024}
+%        {University, Company or Organization}{City, Country}
+%      \resumeItemListStart
+%        \small\resumeItem{GIST Summer Internship}
+%        \resumeItem{Parallel programming and GPU acceleration with PyTorch}
+%    \resumeItemListEnd
+
+\resumeSubHeadingListEnd
+
+
+\section{Teaching Experience}
+\resumeSubHeadingListStart
+
+    \resumeSubheading
+        {Calculus TA}{Spring 2023}
+        {University, Company or Organization}{City Country}
+        
+    \resumeSubheading
+      {Complex Analysis TA}{Autumn 2023}
+      {University, Company or Organization}{City Country}
+
+\resumeSubHeadingListEnd
+\section{Publications (Published)} 
+\begin{itemize}[leftmargin=0.15in, label={}]
+    \normalsize{\item{
+    {\textbf{Kim, Hanse}, Jitendra Pal, and Chanyong Park. \href{https://arxiv.org/abs/2312.12669}{"Holographic description for correlation functions."} Physical Review D 109.12 (2024): 126019.}{}
+    
+    
+}}
+ \end{itemize}
+ \section{Publications (Submitted)} 
+ \begin{itemize}[leftmargin=0.15in, label={}]
+\normalsize{\item{
+    {Park, Chanyong, \textbf{Hanse Kim}, and Kyungchan Cho. \href{https://arxiv.org/abs/2405.15168}{"Time evolution of two-point function in expanding universes."} arXiv preprint arXiv:2405.15168 (2024).}{}
+    
+    
+}}
+ \end{itemize}
+
+%\section{Honours and Awards}
+\newpage 
+
+\section{Relevant Coursework}
+\resumeSubHeadingListStart
+\resumeSubheading{Physics}{}{}{}
+\resumeItemListStart
+\small\resumeItem{Advanced Mechanics, Advanced Quantum Physics (QFT I)}
+\resumeItemListEnd
+\resumeSubheading{Mathematics and Computer Science}{}{}{}
+\resumeItemListStart
+\small\resumeItem{Introduction to Differential Topology, von Neumann Algebras, Schr\"odinger Operators}
+
+\resumeItem{Machine Learning and Deep Learning}
+\resumeItemListEnd
+    \resumeSubheading   
+        {Functional Analysis Directed Reading}{March 2023 - June 2023}
+        {University, Company or Organization}{City, Country}
+      \resumeItemListStart
+        \small\resumeItem{Monthly presentations based on Brezis - Functional Analysis}
+        \resumeItem{Supervised by Prof. Jaegil Kim}
+    \resumeItemListEnd
+    \resumeSubheading{Quantum Field Theory II Audit}{January 2024 - May 2024}{}{}
+    \resumeItemListStart
+        \small\resumeItem{Paper reading presentation on \href{https://arxiv.org/abs/0706.1533}{Renormalisation and the Batalin-Vilkovisky formalism}}
+    \resumeItemListEnd
+    \resumeSubheading{GIST Summer Internship}{July 2024}{}{}
+    \resumeItemListStart
+	\small\resumeItem{ML construction of holographic geometry; replication of papers \href{https://arxiv.org/abs/2011.13726}{1}, \href{https://arxiv.org/abs/2209.05203}{2}, \href{https://arxiv.org/abs/2401.00939}{3}, \href{https://arxiv.org/abs/2401.06417v2}{4}}
+	\small\resumeItem{ML construction of MOND interpolating function}
+	\small\resumeItem{Supervised by Prof. Keun-Yeong Kim}
+    \resumeItemListEnd
+    %\resumeSubheading{String Theory Directed Reading}{}{}{}
+\resumeSubHeadingListEnd
+
+
+\section{Specialized Skills}
+\begin{itemize}[leftmargin=0.15in, label={}]
+    \normalsize{\item{
+     \textbf{Programming Languages}{: Python (pandas, PyTorch), Mathematica} \\
+     \textbf{General Software}{: Latex (Bibtex), Github}
+    }\\
+    \textbf{English Proficiency}{: TOEFL 116/120, TOEIC 990/990}}
+ \end{itemize}
+
+ \section{Other Interests}
+\begin{itemize}[leftmargin=0.15in, label={}]
+    \normalsize{\item{
+     \textbf{Orchestra}{: {GIST Orchestra Clarinet (2019-2024), Organiser (2023)} } 
+    }}    
+ \end{itemize}
+\end{document}
+

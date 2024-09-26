@@ -1,0 +1,1 @@
+{"cmd": "\nevl_tr = eval.dsc_eigs(ptl_tr)\n\nprint(evl_tr)\nprint(evl_tr[0,0,0]/evl_tr)", "cmd_opts": " --cell_id=qoqVgpAehK -s", "import_complete": 1, "terminal": "nvimterm"}

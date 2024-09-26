@@ -1,0 +1,326 @@
+import os
+import numpy as np
+import matplotlib.pyplot as plt 
+import torch, torch.nn as nn
+import torch.nn.functional as F
+import torch.distributed as dist
+from torch.nn.parallel import DistributedDataParallel as DDP
+from torch.cuda.amp import GradScaler, autocast
+from tqdm.auto import tqdm
+
+def setup(rank, world_size):
+    dist.init_process_group(backend = "nccl", init_method = "env://", rank=rank, world_size=world_size)
+    torch.cuda.set_device(rank)
+
+def cleanup():
+    dist.destroy_process_group()
+
+def ospttest(r, br):
+    #_, p_value = ttest_rel(r.cpu().numpy(), br.cpu().numpy())
+    #return p_value/2
+    assert r.device == br.device
+    diff = r - br
+    mean_diff = torch.mean(diff)
+    std_diff = torch.std(diff, unbiased = True)
+
+    n = diff.numel()
+    t_stat = mean_diff / (std_diff / torch.sqrt(torch.tensor(n, device=r.device)))
+    p_value = 2 * torch.distributions.StudentT(n - 1).cdf(-torch.abs(t_stat))
+
+    return p_value
+
+class Config:
+    def __init__(self, distributed, hp):
+        self.rank = None
+        self.distributed = distributed
+        
+        self.hp = hp
+
+        if distributed:
+            self.world_size = torch.cuda.device_count()
+            assert self.world_size > 1, 'More than 1 GPU need to be accessible for parallel training.'
+        else:
+            self.world_size = 1
+
+class TPPModel(nn.Module):
+    def __init__(self, market_dim, product_dim, unif_dim, batch_dim, vec_dim, m_layers, head_dim, clipp, device):
+        super(TPPModel, self).__init__()
+        self.market_dim = market_dim
+        self.product_dim = product_dim
+        self.unif_dim = unif_dim
+
+        self.vec_dim = vec_dim
+        self.m_layers = m_layers
+        self.head_dim = head_dim
+        self.clipp = clipp
+
+        self.mlp_dim = 50
+        self.eps = 1e-6
+        self.batch_dim = batch_dim
+        
+        self.device = device
+        
+        self.market_arr = torch.arange(self.market_dim)
+        self.batch_arr = torch.arange(self.batch_dim)
+                
+        self.InitParas()
+
+    def InitParas(self):
+        # several mlps
+        self.mlp_m = nn.Sequential(
+                nn.Linear(self.market_dim, self.mlp_dim),
+                nn.ReLU(),
+                nn.Linear(self.mlp_dim, self.market_dim)
+                )
+        self.mlp_p = nn.Sequential(
+                nn.Linear(self.product_dim, self.mlp_dim),
+                nn.ReLU(),
+                nn.Linear(self.mlp_dim, self.product_dim)
+                )
+        self.mlp_u = nn.Sequential(
+                nn.Linear(self.unif_dim, self.mlp_dim),
+                nn.ReLU(),
+                nn.Linear(self.mlp_dim, self.unif_dim)
+                )
+        
+        # market encoder mha
+        self.qv_p = nn.ModuleList([nn.Linear(self.unif_dim, self.vec_dim*self.head_dim) for _ in range(self.m_layers)])
+        self.kv_p = nn.ModuleList([nn.Linear(self.unif_dim, self.vec_dim*self.head_dim) for _ in range(self.m_layers)])
+        self.vv_p = nn.ModuleList([nn.Linear(self.unif_dim, self.vec_dim*self.head_dim) for _ in range(self.m_layers)])
+        self.ov_p = nn.ModuleList([nn.Linear(self.vec_dim*self.head_dim, self.unif_dim) for _ in range(self.m_layers)])
+
+        self.bn1 = nn.ModuleList([nn.BatchNorm1d(self.market_dim) for _ in range(self.m_layers)])
+        self.bn2 = nn.ModuleList([nn.BatchNorm1d(self.market_dim) for _ in range(self.m_layers)])
+        
+        # decoder lstm + mha
+        self.lstm = nn.LSTM(self.market_dim, self.market_dim)
+        
+        self.qv_d = nn.Linear(1, self.vec_dim*self.head_dim)
+        self.kv_d = nn.Linear(1, self.vec_dim*self.head_dim)
+        self.vv_d = nn.Linear(1, self.vec_dim*self.head_dim)
+        self.ov_d = nn.Linear(self.vec_dim*self.head_dim, 1)
+
+    def InitEmbedding(self, s_feat, p_feat, d_feat, c_feat): 
+        s_feat = F.normalize(s_feat, p=2, dim=2)
+        p_feat = F.normalize(p_feat, p=2, dim=2)
+        d_feat = F.normalize(d_feat, p=2, dim=1)
+
+        # inital embeddings
+        m_init = nn.Linear(self.market_dim, self.unif_dim)(c_feat)
+        e_init = nn.Linear(2, self.unif_dim)(torch.stack((s_feat, p_feat), dim = 3))
+        p_init = nn.Linear(1, self.unif_dim)(d_feat.unsqueeze(1).transpose(-2,-1))
+
+        p_agg = torch.sum(F.relu(m_init.unsqueeze(1) + e_init), dim = 2)
+        p_upd = self.mlp_p(((1 + self.eps) * p_init + p_agg).transpose(-2,-1)).transpose(-2,-1)
+        
+        m_agg = torch.sum(F.relu(p_init.unsqueeze(2) + e_init), dim = 1)
+        m_upd = self.mlp_m(((1 + self.eps) * m_init + m_agg).transpose(-2,-1)).transpose(-2,-1)
+
+        return p_upd, m_upd
+
+    def random_features(self, max_supply, max_price, para_l):
+        m_nodes = torch.randint(0, 1000, (self.batch_dim, self.market_dim, 2)) # random x y
+
+        s_rnd = torch.randint(1, self.market_dim + 1, (self.batch_dim, self.product_dim,))
+        s_ind = torch.rand(self.batch_dim, self.market_dim, self.product_dim).argsort(dim=1).transpose(-2,-1)
+        s_msk = self.market_arr.expand(self.batch_dim, self.product_dim, self.market_dim) < s_rnd.unsqueeze(2)
+
+        s_feat = torch.zeros(self.batch_dim, self.product_dim, self.market_dim, dtype = torch.float32)
+        s_feat.scatter_(2, s_ind, s_msk.float()) # supply : unlimited
+        # if supply is zero for a product at all markets for all products; extremely unlikely!
+
+        s_feat[:, :, 0] = 0.0 # depot
+
+        # market feature
+        c_feat = torch.sqrt(((m_nodes.unsqueeze(2) - m_nodes.unsqueeze(1))**2).sum(dim=3)) # node distance ~ travelling cost; necessarily euclidean?
+
+        # edge features
+        s_feat = s_feat * (torch.rand(self.batch_dim, self.product_dim, self.market_dim)*(max_supply-1) + 1) # supply : limited
+        p_feat = torch.rand(self.batch_dim, self.product_dim, self.market_dim)*(max_price-1) + 1 # price
+        p_feat[:, :, 0] = 0.0 # depot
+
+        # product features
+        s_max, _ = torch.max(s_feat, dim = 2)
+        d_feat = para_l * s_max + (1-para_l) * torch.sum(s_feat, dim = 2) # demand
+
+        return s_feat, p_feat, d_feat, c_feat
+    
+    def MHAVec(self, layer, input):
+        return layer(input).view((self.batch_dim, input.shape[1], self.vec_dim, self.head_dim))
+    
+    def MHA(self, qv, kv, vv, ov):
+        u = torch.einsum('aibk,ajbk->aijk',qv,kv)/np.sqrt(self.vec_dim)
+        att = torch.einsum('aibk,abjk->aijk',F.softmax(u),vv)
+        mha = ov(att.reshape((self.batch_dim, att.shape[1], self.vec_dim*self.head_dim)))
+        return mha
+
+    def MarketEncoder(self, m_upd):
+        m_l = m_upd
+        for l in range(self.m_layers):
+            # check if view and reshape work as expected
+            qv_l, kv_l, vv_l = (
+            self.MHAVec(self.qv_p[l], m_l),
+            self.MHAVec(self.kv_p[l], m_l), 
+            self.MHAVec(self.vv_p[l], m_l))
+
+            mha_l = self.MHA(qv_l, kv_l, vv_l, self.ov_p[l])
+            mhat_l = self.bn1[l](m_l + mha_l)
+            m_l = self.bn2[l](mhat_l + self.mlp_u(mhat_l))
+
+        m_gemb = torch.sum(m_l, dim = 1)/(1+self.market_dim)
+
+        return m_l, m_gemb
+
+    def RemainingDemand(self, d, s, route):
+        rd = d
+        for i in route:
+            rd = rd - s.transpose(-2,-1)[self.batch_arr.to(dtype=torch.long),i.to(dtype=torch.long)]
+        return rd
+
+    def Decoder(self, mcont, mN):
+        mcont, mN = mcont.unsqueeze(1).transpose(-2,-1), mN.unsqueeze(1).transpose(-2,-1)
+        
+        qv, kv, vv = (
+        self.MHAVec(self.qv_d, mcont),
+        self.MHAVec(self.kv_d, mN), 
+        self.MHAVec(self.vv_d, mN))
+        mcont_p = self.MHA(qv, kv, vv, self.ov_d)
+        qv_p = self.MHAVec(self.qv_d, mcont_p)
+        u_dm = self.clipp * F.tanh(torch.einsum('aibk,ajbk->aijk',qv_p,kv)/np.sqrt(self.vec_dim))
+        return u_dm
+
+    def RouteContext(self, a_t, o_t, c_t, m_N):
+        o_t, (_, c_t) = self.lstm(
+            m_N.transpose(-2,-1)[self.batch_arr, a_t].unsqueeze(1).permute(1,0,2).contiguous(), 
+            (o_t, c_t))
+        return o_t, c_t
+
+    def MaskScore(self, u_dm, pi_t, rd):
+        mask_l = pi_t.clone().detach()
+        mask_l = mask_l[mask_l != 0]
+        #u_dm[:,torch.isin(self.market_arr, mask_l)] = -float('inf')
+        u_dm[:,(self.market_arr.unsqueeze(-1) == mask_l).any(-1)] = -float('inf')
+        if torch.any(rd > 0):
+            u_dm[:,0] = -float('inf')
+        # if all u_dm are -inf; all places are visited, stay at 0; zero contr. to cost
+        u_dm[torch.all(u_dm == -float('inf'), dim = 1), 0] = 1
+        return u_dm
+
+    def TransportSolver(self, path, p, d, solver_name = "glpk"):
+        # solve transport problem here
+        return 0
+
+    def forward(self, s, p, d, c, baseline = False):
+        final_log_prob = 0
+        # run initial embedding once
+        p_upd, m_upd = self.InitEmbedding(s, p, d, c)
+        m_N, m_gemb = self.MarketEncoder(m_upd)
+
+        # initialise route context
+        pi_t = torch.zeros(1, self.batch_dim , dtype=torch.int, device = self.device)
+        o_t = torch.zeros(1, self.batch_dim, self.market_dim, device = self.device)
+        c_t = torch.zeros(1, self.batch_dim, self.market_dim, device = self.device)
+        a_t = 0
+        
+        # run decoder
+        while True:
+            rd = self.RemainingDemand(d, s, pi_t)
+
+            p_t = torch.einsum('ai,aik->ak',rd, p_upd)
+            o_t, c_t = self.RouteContext(a_t, o_t, c_t, m_N)
+            m_context = torch.cat((m_gemb, p_t, o_t[0]), dim = 1)
+            
+            u_dm = torch.sum(self.Decoder(m_context, m_N.transpose(-2,-1)[self.batch_arr,a_t]), dim = (1,3))
+            u_dm = self.MaskScore(u_dm, pi_t, rd)
+            policy = F.softmax(u_dm, dim = 1)
+            
+            if baseline:
+                a_t = torch.max(policy, 1).indices
+            else:
+                a_t = torch.multinomial(policy, 1).view(self.batch_dim)
+            pi_t = torch.cat((pi_t, a_t.unsqueeze(0)), dim = 0)
+            if torch.all(a_t == 0):
+                break
+        
+            log_prob = torch.log(policy[self.batch_arr, a_t])
+            final_log_prob += log_prob
+
+        reward = c[
+            self.batch_arr.expand(pi_t.shape[0],self.batch_dim).to(dtype=torch.long),
+            pi_t[:, :].to(dtype=torch.long), 
+            torch.cat((pi_t[1:,:],torch.zeros(1,self.batch_dim, device=self.device)),dim=0).type(torch.int).to(dtype=torch.long)].sum(dim = 0)
+
+        return pi_t.T, reward, final_log_prob
+
+
+def run(rank, world_size, config:Config):
+    print(f"Parallel on rank {rank}.")
+    setup(rank, config.world_size)
+
+    pbar1 = tqdm(range(epochs*steps), desc='Progress', total=epochs*steps, leave = True, position=0, colour='blue')
+
+    model = TPPModel(**config.hp, device = rank).to(rank)
+    model = DDP(model, device_ids = [rank])
+
+    baseline_model = TPPModel(**config.hp, device = rank)
+    baseline_model.load_state_dict(model.load_state_dict())
+    baseline_model = baseline_model.to(rank)
+
+    #print(model.device)
+
+    optimiser = torch.optim.Adam(model.parameters(), lr)
+    scaler = GradScaler()
+
+    r = []
+
+    for _ in range(epochs):
+        loss_t = 0
+        for _ in range(steps):
+            s_tr, p_tr, d_tr, c_tr = model.random_features(max_supply = 10, max_price = 15, para_l = 0.95).to(rank)
+            
+            with autocast():
+                route, reward, log_p = model(s_tr, p_tr, d_tr, c_tr)
+                _, baseline, _ = baseline_model(s_tr, p_tr, d_tr, c_tr, baseline = True)
+
+                loss = torch.mean((-reward + baseline) * log_p)
+
+            #print('reward : ', torch.mean(reward).item())
+            #print('loss : ', loss.item())
+
+            loss_t -= torch.mean(reward).item()/steps
+            
+            optimiser.zero_grad()
+            scaler.scale(loss).backward()
+            scaler.step(optimiser)
+            scaler.update()
+            
+            pbar1.update()
+
+        if ospttest(reward, baseline) < 0.05:
+            baseline_model.load_state_dict(model.state_dict())
+        
+        r.append(loss_t)
+
+    torch.save(model.state_dict(), 'model.pth')
+
+epochs = 100 #100
+steps = 5000 #2500; for batch_dim 256
+lr = 1e-4
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    
+if __name__ == '__main__':
+    use_distributed_training = True
+
+    hyperparas = {
+            'market_dim': 5, #50
+            'product_dim': 5, #50
+            'unif_dim': 128,
+            'batch_dim': 128,
+            'vec_dim': 16,
+            'm_layers': 3,
+            'head_dim': 8,
+            'clipp': 10
+    }
+
+    config = Config(use_distributed_training, hyperparas)
+    run(int(os.environ['RANK']), config.world_size, config)

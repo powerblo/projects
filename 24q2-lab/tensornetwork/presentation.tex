@@ -1,0 +1,199 @@
+\documentclass{beamer}
+%
+% Choose how your presentation looks.
+%
+% For more themes, color themes and font themes, see:
+% http://deic.uab.es/~iblanes/beamer_gallery/index_by_theme.html
+%
+\mode<presentation>
+{
+  \usetheme{default}      % or try Darmstadt, Madrid, Warsaw, ...
+  \usecolortheme{default} % or try albatross, beaver, crane, ...
+  \usefonttheme{default}  % or try serif, structurebold, ...
+  \setbeamertemplate{navigation symbols}{}
+  \setbeamertemplate{caption}[numbered]
+} 
+
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+\usepackage{amsmath, amssymb, physics, tikz, tikz-feynman}
+\usepackage{graphicx}
+
+\title{Tensor Networks}
+\author{Hanse Kim}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}{Tensor Networks}
+	\begin{itemize}
+	\item Framework of decomposition representation for many-body wavefunctions
+	\item Diagrammatic language for quantum physics
+	\item Explicit and accessible representation of entanglement between constituents in many-body
+	\item Relevant degrees of freedom for low-energy states corresponds to TN states
+	\end{itemize}	
+\end{frame}
+
+\begin{frame}{Tensor Network}
+	\begin{itemize}
+	\item \textbf{Tensor network} : product of tensors with contracted indices
+	\item \textbf{Diagrammatic notation}
+	\\\phantom{\includegraphics[width=0.5\textwidth]{example-image-a}}
+	% Diagrams
+	%\item \textbf{Property} : computational cost of contraction is order dependent
+	\end{itemize}
+\end{frame}
+
+\begin{frame}{Wavefunction Decomposition}
+	\begin{itemize}
+	\item $N$ particles with $p$ states : tensor product basis
+		\[
+			\ket{\Psi }=\sum_{i_{j}=1\dots p}^{} C_{i_{1}\dots i_{N}}\ket{i_{1}}\otimes\cdots\ket{i_{N}}
+		.\]
+		\begin{itemize}
+		\item $N$ rank tensor; $p^{N}$ (exponential) DoF
+		\item Not all coefficients are independent in presence of entanglement
+	\\\phantom{\includegraphics[width=0.3\textwidth]{example-image-a}}
+			% Simple example : two spin 1/2 particles entangled into singlet state
+		\end{itemize}	
+	\end{itemize}
+\end{frame}
+\begin{frame}{Wavefunction Decomposition}
+	\begin{itemize}
+	\item Decompose tensor into tensors of smaller rank
+		% Example : rank N tensor
+		% Product of N vectors (naive case of both below)
+		% MPS with periodic bc
+		% PEPS with open bc
+	\\\phantom{\includegraphics[width=0.5\textwidth]{example-image-a}}
+		\begin{itemize}
+		\item $pN$ (polynomial) DoF
+		\item Additional DoF contribution due to dimensionality of contracted indices; \textbf{bond indices}
+		\end{itemize}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}{Wavefunction Decomposition}
+	\begin{itemize}
+	\item Bond indices represents entanglement
+	\item ex. Entanglement entropy between boundary and inner tensors of PEPS system
+		% Diagram
+	\\\phantom{\includegraphics[width=0.3\textwidth]{example-image-a}}
+		\[
+		S(L)=-\text{tr}(\rho_{\text{in}}\log{\rho_{\text{in}}})\leq 4L \log{D}
+	.\]
+	\begin{itemize}
+	\item For trivial TNs ($D=1$), $S(L)=0$; no entanglement present
+	\item $D>1$ : area-law for entanglement entropy
+		%form of $S(L)$ dependent on connection geometry; constant dep on D
+	\end{itemize}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}{Matrix Product States}
+	\begin{itemize}
+		\item \textbf{MPS} : One-dimensional array of tensors
+	\\\phantom{\includegraphics[width=0.3\textwidth]{example-image-a}}
+		% Diagrams for open and periodic
+		\begin{itemize}
+		\item Two examples; open BC, periodic BC
+		\item One tensor per site in many-body system; open indices : physical DoF
+		\end{itemize}
+	\item Properties
+		\begin{itemize}
+		\item MPS are dense : any Hilbert state represented by increasing $D$; low energy states in 1D efficiently approximated with $D$ polynomial in $N$
+			% for gapped local Hamiltonians
+		\item Area-law for entanglement entropy; ground states for large $N$
+		\end{itemize}
+	\end{itemize}
+\end{frame}
+\begin{frame}{Matrix Product States}
+	\begin{itemize}
+		\item Properties
+		\begin{itemize}
+		\item Finitely correlated; $\ev{O O^{\prime}}-\ev{O}\ev{O^{\prime}}\sim f(r)\exp -r/\xi$  
+		\end{itemize}
+	\end{itemize}
+	\\\phantom{\includegraphics[width=0.5\textwidth]{example-image-a}}
+\end{frame}
+
+\begin{frame}{Matrix Product States}
+	\begin{itemize}
+		\item Examples
+	\\\phantom{\includegraphics[width=0.5\textwidth]{example-image-a}}
+		% Diagrams for open and periodic
+	\begin{enumerate}
+		\item GHZ State : $\ket{\Psi}=\frac{1}{\sqrt{2}}(\ket{0}^{\otimes \infty}+\ket{1}^{\otimes \infty})$
+		\item 1D cluster state : simultaneous eigenket of $K^{i}=S^{z}_{i-1}S^{x}_iS^z_{i+1}$; $\ket{\Psi }=\prod_i \frac{1+K^{i}}{2}\ket{0}^{\otimes \infty}$
+		\item Ground state of 1D AKLT : $H=\sum_{\ev{i,j}}^{}\boldsymbol{S}_i\cdot\boldsymbol{S}_j+\frac{1}{3}(\boldsymbol{S}_i\cdot\boldsymbol{S}_j)^2 $
+		\end{enumerate}
+	\end{itemize}
+\end{frame}
+
+%\begin{frame}{Projected Entangled Pair States}
+%	\begin{itemize}
+%		\item \textbf{PEPS} : Two-dimensional array of tensors
+%	\\\phantom{\includegraphics[width=0.3\textwidth]{example-image-a}}
+		% Diagrams for open and periodic
+%		\begin{itemize}
+%		\item 2D lattices, tensor renormalisation group etc.
+%		\end{itemize}
+	%\item Properties
+	%	\begin{itemize}
+	%	\item 
+	%	\end{itemize}
+%	\end{itemize}
+%\end{frame}
+
+\begin{frame}{Density-Matrix Renormalisation Group}
+	\begin{itemize}
+	\item 1D spin $\frac{1}{2}$ lattice; iterative method of increasing sites (sweep)
+	\begin{itemize}
+		\item Split lattice into two blocks $A,B$ + two intermediate sites; \textbf{superblock} $A\cdot\cdot B$ % each site in block is dim d; intermediate site is dim D(3)
+		\item Diagonalise superblock Hamiltonian; find ground state $H=-J\sum_{\ev{i,j}}^{} \boldsymbol{S}_{i}\cdot\boldsymbol{S}_{j} -h\sum_{i}^{} S^z_{i}$\\
+			$\ket{\Psi }_{G}=\sum_{ij}^{} \psi_{ij}\ket{i}_{A\cdot}\ket{j}_{\cdot B}$; basis of block $A\cdot$ $\ket{i}_{A\cdot}$
+		\item Diagonalise reduced density operator for $A\cdot$ given ground state \\
+			$\rho_{A\cdot}=\text{Tr}_{\cdot B}\ket{\Psi}_G\bra{\Psi}_G$; $(\rho_{A\cdot})_{ij}=\sum_{k}\psi_{ik}\psi^\star_{jk}$\\
+			Effective basis of new block $A^{\prime}$ $\ket{i^{\prime}}_{A^{\prime}}$
+		\item Truncate for largest eigenvalues to reduce dimensionality
+		\item Update operators to new basis\\
+			$\ev{i^{\prime}| O|j^{\prime}}=\sum_{ij} \ev{i^{\prime}|i}\ev{i|O|j}\ev{j|j^{\prime}}$
+	\end{itemize}
+\item Ansatz for superblock Hamltionian ground state : MPS
+\end{itemize}
+\end{frame}
+
+\begin{frame}{MPS and Machine Learning}
+\begin{itemize}
+\item Feature vector constructed from tensor products; weights constructed from tensor networks (ex. MPS)
+	\[
+	\mathbf{v}(x)= \begin{bmatrix}
+	\phi_1(x_{1}) \\ \phi_2(x_1)\\
+	\end{bmatrix}\otimes \begin{bmatrix}
+	\phi_1(x_{2}) \\\phi_2(x_2)\\
+	\end{bmatrix}\otimes\cdots\otimes\begin{bmatrix}
+	\phi_1(x_{N}) \\ \phi_2(x_N)\\
+	\end{bmatrix}
+	.\]
+	\[
+		f(x)=W\cdot \mathbf{v}(x)=\sum_{s_{i}=\{1,2\}}W_{s_{1}\cdots s_{N}}\phi_{s_{1}}(x_{1})\cdots\phi_{s_{N}}(x_{N})
+	.\]
+	
+	
+\end{itemize}	
+%\\\phantom{\includegraphics[width=0.5\textwidth]{example-image-a}}
+\end{frame}
+
+\begin{frame}{MPS and Machine Learning}
+\begin{itemize}
+\item ex. Unsupervised tree tensor network training (data compression) + supervised training of top layer (classification)
+\item $$
+\end{itemize}	
+\\\phantom{\includegraphics[width=0.5\textwidth]{example-image-a}}
+\end{frame}
+\end{document}
