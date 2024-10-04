@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloaded format=pdflatex 2024.8.20)  20 SEP 2024 19:56
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloaded format=pdflatex 2024.8.20)  30 SEP 2024 20:44
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -950,125 +950,195 @@ Package caption Info: End \AtBeginDocument code.
 (./s2.nav) [1
 
 {/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}{/usr/share/texmf/fonts/enc/dvips/cm-super/cm-super-t1.enc}]
-LaTeX Font Info:    Trying to load font information for OT1+mathkerncmss on input line 50.
+LaTeX Font Info:    Trying to load font information for OT1+mathkerncmss on input line 45.
  (/usr/share/texlive/texmf-dist/tex/latex/sansmathaccent/ot1mathkerncmss.fd
 File: ot1mathkerncmss.fd 2020/01/31 Fontinst v1.933 font definitions for OT1/mathkerncmss.
 ) [2
 
-] [3
-
 ]
-<trace.png, id=37, 281.05pt x 102.3825pt>
+<trace.png, id=29, 281.05pt x 102.3825pt>
 File: trace.png Graphic file (type png)
 <use trace.png>
-Package pdftex.def Info: trace.png  used on input line 82.
+Package pdftex.def Info: trace.png  used on input line 65.
 (pdftex.def)             Requested size: 122.91406pt x 44.77504pt.
-<svd.png, id=39, 377.41pt x 110.4125pt>
+<svd.png, id=31, 377.41pt x 110.4125pt>
 File: svd.png Graphic file (type png)
 <use svd.png>
-Package pdftex.def Info: svd.png  used on input line 82.
+Package pdftex.def Info: svd.png  used on input line 65.
 (pdftex.def)             Requested size: 184.3758pt x 53.93916pt.
- [4
+ [3
 
  <./trace.png> <./svd.png>]
-<mps.png, id=47, 555.07375pt x 126.4725pt>
-File: mps.png Graphic file (type png)
-<use mps.png>
-Package pdftex.def Info: mps.png  used on input line 98.
-(pdftex.def)             Requested size: 245.83282pt x 56.0128pt.
- [5
-
- <./mps.png>]
-<ghz.png, id=55, 580.1675pt x 151.56625pt>
-File: ghz.png Graphic file (type png)
-<use ghz.png>
-Package pdftex.def Info: ghz.png  used on input line 113.
-(pdftex.def)             Requested size: 184.3758pt x 48.16684pt.
- [6
-
- <./ghz.png>]
-<peps1d.png, id=66, 667.49374pt x 93.34875pt>
-File: peps1d.png Graphic file (type png)
-<use peps1d.png>
-Package pdftex.def Info: peps1d.png  used on input line 134.
-(pdftex.def)             Requested size: 245.83282pt x 34.37895pt.
-LaTeX Font Info:    Font shape `OT1/cmss/b/n' in size <10.95> not available
-(Font)              Font shape `OT1/cmss/bx/n' tried instead on input line 134.
-LaTeX Font Info:    Font shape `OT1/cmss/b/n' in size <8> not available
-(Font)              Font shape `OT1/cmss/bx/n' tried instead on input line 134.
-LaTeX Font Info:    Font shape `OT1/cmss/b/n' in size <6> not available
-(Font)              Font shape `OT1/cmss/bx/n' tried instead on input line 134.
+LaTeX Font Info:    Font shape `OT1/cmss/b/n' in size <10> not available
+(Font)              Font shape `OT1/cmss/bx/n' tried instead on input line 80.
+LaTeX Font Info:    Font shape `OT1/cmss/b/n' in size <7> not available
+(Font)              Font shape `OT1/cmss/bx/n' tried instead on input line 80.
+LaTeX Font Info:    Font shape `OT1/cmss/b/n' in size <5> not available
+(Font)              Font shape `OT1/cmss/bx/n' tried instead on input line 80.
 
 
 LaTeX Font Warning: Font shape `T1/cmss/b/n' undefined
-(Font)              using `T1/cmss/m/n' instead on input line 134.
+(Font)              using `T1/cmss/m/n' instead on input line 80.
 
-<aklt.png, id=67, 455.7025pt x 121.45375pt>
-File: aklt.png Graphic file (type png)
-<use aklt.png>
-Package pdftex.def Info: aklt.png  used on input line 134.
-(pdftex.def)             Requested size: 153.64493pt x 40.949pt.
-[7
+[4
 
- <./peps1d.png> <./aklt.png>]
-<1dcluster.png, id=79, 562.1pt x 399.4925pt>
-File: 1dcluster.png Graphic file (type png)
-<use 1dcluster.png>
-Package pdftex.def Info: 1dcluster.png  used on input line 150.
-(pdftex.def)             Requested size: 153.64493pt x 109.19328pt.
- [8
-
- <./1dcluster.png>] [9
+] [5
 
 ]
-<peps.png, id=102, 500.87125pt x 349.305pt>
-File: peps.png Graphic file (type png)
-<use peps.png>
-Package pdftex.def Info: peps.png  used on input line 184.
-(pdftex.def)             Requested size: 245.83282pt x 171.44342pt.
+<mps.png, id=55, 555.07375pt x 126.4725pt>
+File: mps.png Graphic file (type png)
+<use mps.png>
+Package pdftex.def Info: mps.png  used on input line 108.
+(pdftex.def)             Requested size: 245.83282pt x 56.0128pt.
+ [6
+
+ <./mps.png>]
+<ghz.png, id=63, 580.1675pt x 151.56625pt>
+File: ghz.png Graphic file (type png)
+<use ghz.png>
+Package pdftex.def Info: ghz.png  used on input line 123.
+(pdftex.def)             Requested size: 184.3758pt x 48.16684pt.
+ [7
+
+ <./ghz.png>]
+<peps1d.png, id=74, 667.49374pt x 93.34875pt>
+File: peps1d.png Graphic file (type png)
+<use peps1d.png>
+Package pdftex.def Info: peps1d.png  used on input line 144.
+(pdftex.def)             Requested size: 245.83282pt x 34.37895pt.
+<aklt.png, id=75, 455.7025pt x 121.45375pt>
+File: aklt.png Graphic file (type png)
+<use aklt.png>
+Package pdftex.def Info: aklt.png  used on input line 144.
+(pdftex.def)             Requested size: 153.64493pt x 40.949pt.
+ [8
+
+ <./peps1d.png> <./aklt.png>]
+<1dcluster.png, id=85, 562.1pt x 399.4925pt>
+File: 1dcluster.png Graphic file (type png)
+<use 1dcluster.png>
+Package pdftex.def Info: 1dcluster.png  used on input line 160.
+(pdftex.def)             Requested size: 153.64493pt x 109.19328pt.
+ [9
+
+ <./1dcluster.png>]
+<toric.png, id=93, 180.675pt x 169.1118pt>
+File: toric.png Graphic file (type png)
+<use toric.png>
+Package pdftex.def Info: toric.png  used on input line 177.
+(pdftex.def)             Requested size: 61.45703pt x 57.52304pt.
  [10
 
- <./peps.png>]
-<corr.png, id=109, 693.59125pt x 291.0875pt>
-File: corr.png Graphic file (type png)
-<use corr.png>
-Package pdftex.def Info: corr.png  used on input line 196.
-(pdftex.def)             Requested size: 245.83282pt x 103.17021pt.
+ <./toric.png>]
+<toricimage.png, id=100, 368.37625pt x 295.1025pt>
+File: toricimage.png Graphic file (type png)
+<use toricimage.png>
+Package pdftex.def Info: toricimage.png  used on input line 188.
+(pdftex.def)             Requested size: 153.64493pt x 123.08214pt.
+<toriclatt.png, id=101, 357.335pt x 293.095pt>
+File: toriclatt.png Graphic file (type png)
+<use toriclatt.png>
+Package pdftex.def Info: toriclatt.png  used on input line 188.
+(pdftex.def)             Requested size: 153.64493pt x 126.02391pt.
  [11
 
+ <./toricimage.png> <./toriclatt.png>]
+<toricstate.png, id=109, 259.97125pt x 181.67876pt>
+File: toricstate.png Graphic file (type png)
+<use toricstate.png>
+Package pdftex.def Info: toricstate.png  used on input line 204.
+(pdftex.def)             Requested size: 153.64493pt x 107.37248pt.
+<toricnet.png, id=110, 289.08pt x 175.65625pt>
+File: toricnet.png Graphic file (type png)
+<use toricnet.png>
+Package pdftex.def Info: toricnet.png  used on input line 204.
+(pdftex.def)             Requested size: 153.64493pt x 93.36003pt.
+
+
+./s2.tex:204: LaTeX Error: Something's wrong--perhaps a missing \item.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.204 \end{frame}
+                 
+Try typing  <return>  to proceed.
+If that doesn't work, type  X <return>  to quit.
+
+[12
+
+ <./toricstate.png> <./toricnet.png>]
+<schmidt.png, id=119, 405.515pt x 98.3675pt>
+File: schmidt.png Graphic file (type png)
+<use schmidt.png>
+Package pdftex.def Info: schmidt.png  used on input line 217.
+(pdftex.def)             Requested size: 230.46739pt x 55.90643pt.
+ [13
+
+ <./schmidt.png>] [14
+
+] [15
+
+]
+<peps.png, id=137, 500.87125pt x 349.305pt>
+File: peps.png Graphic file (type png)
+<use peps.png>
+Package pdftex.def Info: peps.png  used on input line 250.
+(pdftex.def)             Requested size: 245.83282pt x 171.44342pt.
+ [16
+
+ <./peps.png>] [17
+
+]
+<corr.png, id=151, 693.59125pt x 291.0875pt>
+File: corr.png Graphic file (type png)
+<use corr.png>
+Package pdftex.def Info: corr.png  used on input line 274.
+(pdftex.def)             Requested size: 245.83282pt x 103.17021pt.
+ [18
+
  <./corr.png>]
-<fincor.png, id=116, 608.2725pt x 224.84pt>
+<fincor.png, id=158, 608.2725pt x 224.84pt>
 File: fincor.png Graphic file (type png)
 <use fincor.png>
-Package pdftex.def Info: fincor.png  used on input line 207.
+Package pdftex.def Info: fincor.png  used on input line 285.
 (pdftex.def)             Requested size: 184.3758pt x 68.15239pt.
- [12
+ [19
 
  <./fincor.png>]
 File: corr.png Graphic file (type png)
 <use corr.png>
-Package pdftex.def Info: corr.png  used on input line 220.
+Package pdftex.def Info: corr.png  used on input line 298.
 (pdftex.def)             Requested size: 245.83282pt x 103.17021pt.
- [13
+ [20
 
 ]
 File: corr.png Graphic file (type png)
 <use corr.png>
-Package pdftex.def Info: corr.png  used on input line 234.
+Package pdftex.def Info: corr.png  used on input line 312.
 (pdftex.def)             Requested size: 245.83282pt x 103.17021pt.
- [14
+ [21
 
-] [15
+] [22
 
-] [16
+] [23
 
-] [17
+] [24
 
-] [18
+] [25
 
-] [19
+]
+<mpscontr.png, id=200, 446.66875pt x 289.08pt>
+File: mpscontr.png Graphic file (type png)
+<use mpscontr.png>
+Package pdftex.def Info: mpscontr.png  used on input line 387.
+(pdftex.def)             Requested size: 230.46739pt x 149.15796pt.
+ [26
 
-] [20
+ <./mpscontr.png>] [27
+
+] [28
 
 ]
 \tf@nav=\write6
@@ -1093,18 +1163,18 @@ Package rerunfilecheck Info: File `s2.out' has not changed.
 (rerunfilecheck)             Checksum: D41D8CD98F00B204E9800998ECF8427E;0.
  ) 
 Here is how much of TeX's memory you used:
- 34195 strings out of 476106
- 703459 string characters out of 5793933
- 1937975 words of memory out of 5000000
- 55469 multiletter control sequences out of 15000+600000
- 584787 words of font info for 105 fonts, out of 8000000 for 9000
+ 34264 strings out of 476106
+ 704046 string characters out of 5793933
+ 1932975 words of memory out of 5000000
+ 55528 multiletter control sequences out of 15000+600000
+ 582054 words of font info for 97 fonts, out of 8000000 for 9000
  59 hyphenation exceptions out of 8191
- 128i,11n,131p,1961b,559s stack positions out of 10000i,1000n,20000p,200000b,200000s
-</usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmss10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmss8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmss9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmssi10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmssi8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmssi9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy5.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/symbols/msam10.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfsi1095.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfso1000.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfss0500.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfss0600.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfss0700.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfss0800.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfss0900.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfss1000.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfss1095.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfss1440.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfsx1095.pfb>
-Output written on s2.pdf (20 pages, 574596 bytes).
+ 128i,11n,131p,1961b,545s stack positions out of 10000i,1000n,20000p,200000b,200000s
+</usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmib10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmss10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmss8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmssi10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmssi8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/symbols/msam10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfsi1095.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfso1000.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfss0600.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfss0700.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfss0800.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfss1000.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfss1095.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfss1440.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfsx1095.pfb>
+Output written on s2.pdf (28 pages, 615142 bytes).
 PDF statistics:
- 299 PDF objects out of 1000 (max. 8388607)
- 191 compressed objects within 2 object streams
- 41 named destinations out of 1000 (max. 500000)
- 93 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 332 PDF objects out of 1000 (max. 8388607)
+ 212 compressed objects within 3 object streams
+ 57 named destinations out of 1000 (max. 500000)
+ 128 words of extra memory for PDF output out of 10000 (max. 10000000)
 
