@@ -107,7 +107,7 @@ class PathModule(CommonModule):
         route[torch.all(compat == -float('inf'), dim = 1), 0] = 1
         return route
 
-    def forward(self, hvec, hbar, objectives, baseline = False):
+    def forward(self, hvec, hbar, objs, baseline = False):
         route = torch.zeros(1, self.batch_dim , dtype = torch.int, device = self.device)
         final_log_prob = torch.zeros(self.batch_dim)
         # run decoder
@@ -133,7 +133,7 @@ class PathModule(CommonModule):
             kvf = self.kvf_p(hvec) # hvf : batch dim x node dim x head dim = unif dim
 
             compatf = self.clipp * torch.tanh(torch.einsum('ax,aix->ai', qvf, kvf)/np.sqrt(self.unif_dim)) # compatf : batch dim x node dim
-            compatf_mask = self.MaskAtt(compatf, route, objectives)
+            compatf_mask = self.MaskAtt(compatf, route, objs)
             
             policy = F.softmax(compatf_mask, dim = 1)
             
@@ -158,8 +158,10 @@ class TPPModel(nn.Module):
         self.encoder = encoder
         self.decoder = decoder
 
-    def forward(self, adj_matr, objectives, baseline = False):
+    def forward(self, adj_matr, frames, hamiltonian, baseline = False):
+        objs = self.obj_frames(frames, hamiltonian)
+
         hvec, hbar = self.encoder(adj_matr)
-        route, final_log_prob = self.decoder(hvec, hbar, objectives, baseline)
+        route, final_log_prob = self.decoder(hvec, hbar, objs, baseline)
 
         return route.T, final_log_prob
