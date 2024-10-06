@@ -84,7 +84,7 @@ class InvEig(EvalEig):
 
         # initialise model
         #self.ptl = nn.Parameter(torch.rand(self.batch_dim, self.rn-1)) # random parameters
-        modules = seq_mlp(init = 6, mlp = self.mlp_shape, fin = int(self.pn*(self.pn-1)/2), act = nn.ReLU())
+        modules = seq_mlp(init = 6, mlp = self.mlp_shape, fin = 2*self.pn, act = nn.ReLU())
         self.mlp = nn.Sequential(*modules)
     
     def dist_tsor(self, posx, posy):
@@ -99,11 +99,11 @@ class InvEig(EvalEig):
         return val/self.xm**2
 
     def forward(self, evl):
-        #pos = self.mlp(evl)
-        #posx_md, posy_md = pos[:,:self.pn], pos[:,self.pn:]
-        #val_md = self.dist_tsor(posx_md, posy_md)
-        posx_md, posy_md = None, None 
-        val_md = self.mlp(evl)
+        pos = self.mlp(evl)
+        posx_md, posy_md = pos[:,:self.pn], pos[:,self.pn:]
+        val_md = self.dist_tsor(posx_md, posy_md)
+        #posx_md, posy_md = None, None 
+        #val_md = self.mlp(evl)
 
         return posx_md, posy_md, val_md
 
@@ -118,7 +118,7 @@ eval_para = {
 
 model_para = {
         # model
-        'mlp' : [1000, 1000, 1000],
+        'mlp' : [100, 100],
 
         # training
         'epoch' : 5000,
@@ -186,22 +186,25 @@ pbar = tqdm(range(epochs), desc='Progress', total=epochs, leave = True, position
 loss_list = [[]]
 
 val_tr = model.dist_tsor(posx_tr, posy_tr).to(dtype = torch.float32)
-
 #|%%--%%| <tIwq7WLkxg|hCHoYCR6v7>
 
 for e in range(epochs):
     #with torch.autograd.detect_anomaly():
-    posx_md, posy_md, val_md = model(evl_tr)
+    posx_md, posy_md, val_md = model((evl_tr-torch.mean(evl_tr))/torch.sqrt(torch.var(evl_tr)))
     if e == 0:
-        val_init = val_md
+        val_init = val_md.clone()
 
-    loss = nn.L1Loss()(val_tr, val_md)
+    loss0 = nn.L1Loss()(val_tr, val_md)
+    loss1 = nn.L1Loss()(posx_tr, posx_md) + nn.L1Loss()(posy_tr, posy_md)
+
+    loss = loss0 + loss1*0
 
     optimiser.zero_grad()
     loss.backward()
     optimiser.step()
 
-    pbar.update()
+    #pbar.update()
+    print(loss.item())
 
 
 # |%%--%%| <hCHoYCR6v7|e9rRdHJzmQ>
@@ -211,8 +214,6 @@ torch.save(model.state_dict(), f"{eval_para['batch_dim']}.pth")
 
 #|%%--%%| <e9rRdHJzmQ|juRRVNYsNY>
 
-print(val_tr)
-print(val_init)
-print(val_md)
+print(posx_tr)
+print(posx_md)
 print(loss)
-
