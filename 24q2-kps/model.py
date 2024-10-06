@@ -33,7 +33,10 @@ class CommonModule(nn.Module):
         weight = F.softmax(compat, dim = 2) # weight : batch dim x node dim x node dim x head num
         received_vec = torch.einsum('aixb,axbj->aibj', weight, vv) # recvec : batch dim x node dim x head num x head dim
         mha = torch.einsum('xyj,aixy->aij', Wo, received_vec) # mha : batch dim x node dim x unif dim
-        return mha 
+        return mha
+
+    def GenerateRandomGraph(self):
+        adj_matr = torch.zeros((self.node_dim, self.node_dim), device = self.device)
 
 class Encoder(CommonModule):
     def __init__(self, encoder_layers, **kwargs):
@@ -123,7 +126,7 @@ class PathModule(CommonModule):
             torch.einsum('xij,abx->abij', self.vv_p, hvec))
 
             compat = torch.einsum('abx,aibx->aib',qv,kv)/np.sqrt(self.head_dim) # batch dim x node dim x head num
-            compat_mask = self.MaskAtt(compat, route, objectives)
+            compat_mask = self.MaskAtt(compat, route, objs)
             weight = F.softmax(compat_mask, dim = 1) # weight : batch dim x node dim x head num
             # (c) x node dim  X   
             received_vec = torch.einsum('axb,axbi->abi', weight, vv) # recvec : batch dim x head num x head dim
@@ -158,9 +161,7 @@ class TPPModel(nn.Module):
         self.encoder = encoder
         self.decoder = decoder
 
-    def forward(self, adj_matr, frames, hamiltonian, baseline = False):
-        objs = self.obj_frames(frames, hamiltonian)
-
+    def forward(self, adj_matr, objs, baseline = False):
         hvec, hbar = self.encoder(adj_matr)
         route, final_log_prob = self.decoder(hvec, hbar, objs, baseline)
 

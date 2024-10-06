@@ -15,6 +15,7 @@ def run(rank, config:Config):
     #scaler = torch.cuda.amp.GradScaler()
     
     # generate module objects, parameter passing
+    paras = para(config.hp, CommonModule)
     ModelT = (Encoder(**paras, enc_layers = config.hp['enc_layers'], device = rank),
               PathModule(**paras, clipp = config.hp['clipp'], device = rank))
 
