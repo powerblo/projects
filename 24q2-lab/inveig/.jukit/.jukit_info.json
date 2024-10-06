@@ -1,1 +1,1 @@
-{"cmd": "\nevl_tr = eval.dsc_eigs(ptl_tr)\n\nprint(evl_tr)\nprint(evl_tr[0,0,0]/evl_tr)", "cmd_opts": " --cell_id=qoqVgpAehK -s", "import_complete": 1, "terminal": "nvimterm"}
+{"cmd": "\nfor e in range(epochs):\n    #with torch.autograd.detect_anomaly():\n    posx_md, posy_md, val_md = model(evl_tr)\n    if e == 0:\n        val_init = val_md\n\n    loss = nn.L1Loss()(val_tr, val_md)\n\n    optimiser.zero_grad()\n    loss.backward()\n    optimiser.step()\n\n    pbar.update()\n\n", "cmd_opts": " --cell_id=hCHoYCR6v7 -s", "import_complete": 1, "terminal": "nvimterm"}
