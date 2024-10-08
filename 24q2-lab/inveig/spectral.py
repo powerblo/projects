@@ -1,7 +1,6 @@
 
 import torch, torch.nn as nn
 import numpy as np, matplotlib.pyplot as plt
-from torch.nn.modules.batchnorm import init
 from tqdm.auto import tqdm
 
 def seq_mlp(init, mlp, fin, act):
@@ -56,7 +55,6 @@ class EvalEig(nn.Module):
 
         evl_rs = evl.view(-1,1)
         ptl_rs = ptl(r_dsc.view(-1,1)).view(1,-1)
-        self.ptl_rs = ptl_rs.detach()
         rad_rs = rad(r_dsc.view(-1,1)).transpose(0,1)
         #print("u(r) : ", rad_rs.shape, rad_rs)
 
@@ -75,25 +73,25 @@ class EvalEig(nn.Module):
         # rad output : evl_N x self.rn
         error_mtr = -rad_dd + ptl_rs * rad_rs - evl_rs * rad_rs
 
-        return error_mtr
+        return ptl_rs, rad_rs, error_mtr
 
     def forward(self):
-        error_mtr = self.spectral_err(self.rad_mlp, self.ptl_mlp, self.evl)
-        error = torch.sum(torch.abs(error_mtr))
+        ptl_md, rad_md, error_mtr = self.spectral_err(self.rad_mlp, self.ptl_mlp, self.evl)
+        error = torch.sqrt(torch.sum(error_mtr**2))
 
-        return error
+        return ptl_md, rad_md, error
 
 # |%%--%%| <Nmb5q8f54j|xr3NyHiOFF>
 
 para = {
-        'rm' : 1,
-        'rn' : 1000,
+        'rm' : 1000,
+        'rn' : 10000,
 
         # model
         'mlp' : [100,100],
 
         # training
-        'epoch' : 1000,
+        'epoch' : 200,
         'lr' : 1e-2,
 
         # loss regularisation
@@ -119,15 +117,18 @@ loss_list = [[],[]]
 
 for e in range(epochs):
     #with torch.autograd.detect_anomaly():
-    loss = model()
+    ptl_md, rad_md, loss0 = model()
     #print(loss.item())
+    loss1 = ptl_md[-1]**2
+    loss2 = rad_md[0]**2 + rad_md[-1]**2
+    loss = loss0 + para['reg1']*loss1 + para['reg2']*loss2
 
     optimiser.zero_grad()
     loss.backward()
     optimiser.step()
 
-    #pbar.update()
-    print(loss.item())
+    pbar.update()
+    #print(loss.item())
 
 #|%%--%%| <dyJzB2ZAcV|6rxWjy8s0O>
 
