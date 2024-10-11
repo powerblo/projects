@@ -51,13 +51,14 @@ class EvalEig(nn.Module):
 
     def spectral_err(self, rad, ptl, evl):
         evl_rs = evl.view(-1,1)
-        ptl_rs = ptl(self.r_dsc.view(-1,1)).view(1,-1)
+        #ptl_rs = ptl(self.r_dsc.view(-1,1)).view(1,-1)
+        ptl_rs = -1/self.r_dsc
         rad_rs = rad(self.r_dsc.view(-1,1)).transpose(0,1)
 
         # boundary conditions on rad_rs
         #rad_rs = rad_rs * 
 
-        rad_norm = rad_rs / torch.sqrt(torch.sum(rad_rs**2, dim=1).view(-1,1)*self.rm/self.rn)
+        rad_norm = rad_rs# / torch.sqrt(torch.sum(rad_rs**2, dim=1).view(-1,1)*self.rm/self.rn)
         #print("u(r) : ", rad_rs.shape, rad_rs)
 
         rad_d = self.grad_nn(self.r_dsc, rad_norm)
@@ -87,38 +88,71 @@ class EvalEig(nn.Module):
 
 para = {
         'rm' : 100,
-        'rn' : 1000,
+        'rn' : 2000,
 
         # model
         'mlp' : [10,10,10],
 
         # training
-        'epoch' : 100,
-        'lr' : 1e-4,
+        'epoch' : 1000,
+        'lr' : 1e-2,
 
         # loss regularisation
         'reg0' : 1,
-        'reg1' : 1e2,
+        'reg1' : 0,
         'reg2' : 1e4,
 }
 
 model = EvalEig(para)
 
-evl_tr = -torch.arange(1,10).to(torch.float32)**(-2)
+evl_tr = -torch.arange(1,4).to(torch.float32)**(-2)/4
 model.set_evl(evl_tr)
 
 # |%%--%%| <P85EjLGoIH|EyX0aMsDTz>
 
+r = model.r_dsc.detach()
+
+rad_tr = torch.stack([2*r*torch.exp(-r), 1/np.sqrt(2)*r*(1-r/2)*torch.exp(-r/2), 2/np.sqrt(27)*r*(1-2*r/3+2*r**2/27)*torch.exp(-r/3)])
+rad_tr_norm = rad_tr / torch.sqrt(torch.sum(rad_tr**2, dim=1).view(-1,1))
+
+plt.figure()
+plt.plot(r, rad_tr_norm[0].detach())
+plt.plot(r, rad_tr_norm[1].detach())
+plt.plot(r, rad_tr_norm[2].detach())
+
+# |%%--%%| <EyX0aMsDTz|YbUcGhKgOl>
+
 optimiser = torch.optim.Adam(model.parameters(), lr = para['lr'])
 epochs = para['epoch']
+pbar = tqdm(range(epochs), desc='Progress', total=epochs, leave = True, position=0, colour='blue')
+
+for e in range(epochs):
+    rad_md = model.rad_mlp(r.view(-1,1)).transpose(0,1)
+    loss = nn.L1Loss()(rad_md, rad_tr_norm)
+
+    optimiser.zero_grad()
+    loss.backward()
+    optimiser.step()
+    
+    pbar.update()
+
+# |%%--%%| <YbUcGhKgOl|wyrZofOKx3>
+
+plt.figure()
+plt.plot(r, rad_md[0].detach())
+plt.plot(r, rad_md[1].detach())
+plt.plot(r, rad_md[2].detach())
+
+# |%%--%%| <wyrZofOKx3|Fvkh9YNaWa>
+
 pbar = tqdm(range(epochs), desc='Progress', total=epochs, leave = True, position=0, colour='blue')
 loss_list = [[],[],[]]
 
 for e in range(epochs):
     #with torch.autograd.detect_anomaly():
     ptl_md, rad_md, loss0 = model()
-    #print(loss.item())
-    loss1 = torch.abs(ptl_md[0,-1])
+    
+    loss1 = torch.abs(ptl_md[-1])
     loss2 = torch.sqrt(torch.sum(rad_md[:,0]**2 + rad_md[:,-1]**2))
     loss = para['reg0']*loss0 + para['reg1']*loss1 + para['reg2']*loss2
 
@@ -133,16 +167,18 @@ for e in range(epochs):
     pbar.update()
     #print(loss.item())
 
-# |%%--%%| <EyX0aMsDTz|I83gApPhjy>
+# |%%--%%| <Fvkh9YNaWa|I83gApPhjy>
 
 plt.figure()
-plt.plot(model.r_dsc.detach(), ptl_md[0].detach())
+plt.plot(model.r_dsc.detach(), ptl_md.detach())
 plt.show()
 
 # |%%--%%| <I83gApPhjy|HGfqpL7M7D>
 
 plt.figure()
 plt.plot(model.r_dsc.detach(), rad_md[0].detach())
+plt.plot(model.r_dsc.detach(), rad_md[1].detach())
+plt.plot(model.r_dsc.detach(), rad_md[2].detach())
 plt.show()
 
 # |%%--%%| <HGfqpL7M7D|9PeZd3M3YA>
@@ -151,7 +187,7 @@ plt.figure()
 j = 0
 print(loss0.item(),loss1.item(),loss2.item())
 plt.plot(np.arange(j,epochs), loss_list[0][j:])
-plt.plot(np.arange(j,epochs), loss_list[1][j:])
+#plt.plot(np.arange(j,epochs), loss_list[1][j:])
 plt.plot(np.arange(j,epochs), loss_list[2][j:])
 
 # |%%--%%| <9PeZd3M3YA|2yzR9m31Ac>
