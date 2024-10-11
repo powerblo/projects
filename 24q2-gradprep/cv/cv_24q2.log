@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloaded format=pdflatex 2024.8.4)  4 AUG 2024 14:21
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloaded format=pdflatex 2024.8.20)  11 OCT 2024 17:22
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -195,7 +195,7 @@ Package: fancyhdr 2022/11/09 v4.1 Extensive control of page headers and footers
 Package: babel 2024/01/07 v24.1 The Babel package
 \babel@savecnt=\count275
 \U@D=\dimen151
-\l@unhyphenated=\language5
+\l@unhyphenated=\language9
  (/usr/share/texlive/texmf-dist/tex/generic/babel/txtbabel.def)
 \bbl@readstream=\read3
 \bbl@dirlevel=\count276
@@ -364,27 +364,27 @@ LaTeX Font Info:    External font `cmex10' loaded for size
 (Font)              <5> on input line 94.
  [1
 
-{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}] [2] (./cv_24q2.aux)
+{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}{/usr/share/texmf/fonts/enc/dvips/cm-super/cm-super-t1.enc}] [2] (./cv_24q2.aux)
  ***********
 LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-01-22>
  ***********
 Package rerunfilecheck Info: File `cv_24q2.out' has not changed.
-(rerunfilecheck)             Checksum: F83D07E91D544BE93033300CA343ECE8;1112.
+(rerunfilecheck)             Checksum: 614E0FE6C6B138EE85C739E89B3C5318;1334.
  ) 
 Here is how much of TeX's memory you used:
- 10931 strings out of 476182
- 169458 string characters out of 5795596
- 1942975 words of memory out of 5000000
- 32798 multiletter control sequences out of 15000+600000
+ 10934 strings out of 476106
+ 169493 string characters out of 5793933
+ 1944975 words of memory out of 5000000
+ 32808 multiletter control sequences out of 15000+600000
  566672 words of font info for 58 fonts, out of 8000000 for 9000
- 14 hyphenation exceptions out of 8191
- 75i,11n,79p,292b,457s stack positions out of 10000i,1000n,20000p,200000b,200000s
- </home/hanse/.texlive2023/texmf-var/fonts/pk/ljfour/jknappen/ec/ecrm1000.600pk> </home/hanse/.texlive2023/texmf-var/fonts/pk/ljfour/jknappen/ec/ecti1000.600pk> </home/hanse/.texlive2023/texmf-var/fonts/pk/ljfour/jknappen/ec/ecbx1095.600pk> </home/hanse/.texlive2023/texmf-var/fonts/pk/ljfour/jknappen/ec/ecti1095.600pk> </home/hanse/.texlive2023/texmf-var/fonts/pk/ljfour/jknappen/ec/ecrm1095.600pk> </home/hanse/.texlive2023/texmf-var/fonts/pk/ljfour/jknappen/ec/ecrm2074.600pk></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb>
-Output written on cv_24q2.pdf (2 pages, 87214 bytes).
+ 59 hyphenation exceptions out of 8191
+ 75i,11n,79p,302b,457s stack positions out of 10000i,1000n,20000p,200000b,200000s
+</usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfbx1095.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfrm1000.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfrm1095.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfrm2074.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfti1000.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfti1095.pfb>
+Output written on cv_24q2.pdf (2 pages, 161319 bytes).
 PDF statistics:
- 338 PDF objects out of 1000 (max. 8388607)
- 85 compressed objects within 1 object stream
- 11 named destinations out of 1000 (max. 500000)
- 65 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 103 PDF objects out of 1000 (max. 8388607)
+ 84 compressed objects within 1 object stream
+ 12 named destinations out of 1000 (max. 500000)
+ 73 words of extra memory for PDF output out of 10000 (max. 10000000)
 
