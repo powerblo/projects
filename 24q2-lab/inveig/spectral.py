@@ -13,13 +13,14 @@ def seq_mlp(init, mlp, fin, act):
 
     return modules
 
-# |%%--%%| <oLmbyD3rxN|Nmb5q8f54j>
+# |%%--%%| <4EsaucioNG|OgpsVD15m6>
 
 class EvalEig(nn.Module):
     def __init__(self, para):
         super().__init__()
         self.rn = para['rn']
         self.rm = para['rm']
+        self.r_dsc = torch.linspace(self.rm/self.rn, self.rm, self.rn, requires_grad=True)
     
     def fixed_tr(self, para_ptl, ptl_form):
         coeffs_tr = torch.ones(self.batch_dim, 1)
@@ -49,19 +50,20 @@ class EvalEig(nn.Module):
         return grad
 
     def spectral_err(self, rad, ptl, evl):
-        r_dsc = torch.linspace(self.rm/self.rn, self.rm, self.rn, requires_grad=True)
-        self.r_dsc = r_dsc.detach()
-        r_rs = r_dsc.unsqueeze(0).expand(evl.shape[0],-1)
-
         evl_rs = evl.view(-1,1)
-        ptl_rs = ptl(r_dsc.view(-1,1)).view(1,-1)
-        rad_rs = rad(r_dsc.view(-1,1)).transpose(0,1)
+        ptl_rs = ptl(self.r_dsc.view(-1,1)).view(1,-1)
+        rad_rs = rad(self.r_dsc.view(-1,1)).transpose(0,1)
+
+        # boundary conditions on rad_rs
+        #rad_rs = rad_rs * 
+
+        rad_norm = rad_rs / torch.sqrt(torch.sum(rad_rs**2, dim=1).view(-1,1)*self.rm/self.rn)
         #print("u(r) : ", rad_rs.shape, rad_rs)
 
-        rad_d = self.grad_nn(r_dsc, rad_rs)
+        rad_d = self.grad_nn(self.r_dsc, rad_norm)
         #print("u'(r) : ", rad_d.shape, rad_d)
 
-        rad_dd = self.grad_nn(r_dsc, rad_d)
+        rad_dd = self.grad_nn(self.r_dsc, rad_d)
         #print("u''(r) : ", rad_dd.shape, rad_dd)
         
         #plt.figure()
@@ -71,9 +73,9 @@ class EvalEig(nn.Module):
         #plt.show()
 
         # rad output : evl_N x self.rn
-        error_mtr = -rad_dd + ptl_rs * rad_rs - evl_rs * rad_rs
+        error_mtr = -rad_dd + ptl_rs * rad_norm - evl_rs * rad_norm
 
-        return ptl_rs, rad_rs, error_mtr
+        return ptl_rs, rad_norm, error_mtr
 
     def forward(self):
         ptl_md, rad_md, error_mtr = self.spectral_err(self.rad_mlp, self.ptl_mlp, self.evl)
@@ -81,47 +83,48 @@ class EvalEig(nn.Module):
 
         return ptl_md, rad_md, error
 
-# |%%--%%| <Nmb5q8f54j|xr3NyHiOFF>
+# |%%--%%| <OgpsVD15m6|P85EjLGoIH>
 
 para = {
-        'rm' : 1000,
-        'rn' : 10000,
+        'rm' : 100,
+        'rn' : 1000,
 
         # model
-        'mlp' : [100,100],
+        'mlp' : [10,10,10],
 
         # training
-        'epoch' : 200,
-        'lr' : 1e-2,
+        'epoch' : 100,
+        'lr' : 1e-4,
 
         # loss regularisation
-        'reg1' : 1e-2,
-        'reg2' : 1e-2,
+        'reg0' : 1,
+        'reg1' : 1e2,
+        'reg2' : 1e4,
 }
 
 model = EvalEig(para)
 
-#|%%--%%| <xr3NyHiOFF|WRUrqeNtUf>
-
 evl_tr = -torch.arange(1,10).to(torch.float32)**(-2)
 model.set_evl(evl_tr)
 
-# |%%--%%| <WRUrqeNtUf|dyJzB2ZAcV>
-
-#model.load_state_dict(torch.load('1.pth'))
+# |%%--%%| <P85EjLGoIH|EyX0aMsDTz>
 
 optimiser = torch.optim.Adam(model.parameters(), lr = para['lr'])
 epochs = para['epoch']
 pbar = tqdm(range(epochs), desc='Progress', total=epochs, leave = True, position=0, colour='blue')
-loss_list = [[],[]]
+loss_list = [[],[],[]]
 
 for e in range(epochs):
     #with torch.autograd.detect_anomaly():
     ptl_md, rad_md, loss0 = model()
     #print(loss.item())
-    loss1 = ptl_md[-1]**2
-    loss2 = rad_md[0]**2 + rad_md[-1]**2
-    loss = loss0 + para['reg1']*loss1 + para['reg2']*loss2
+    loss1 = torch.abs(ptl_md[0,-1])
+    loss2 = torch.sqrt(torch.sum(rad_md[:,0]**2 + rad_md[:,-1]**2))
+    loss = para['reg0']*loss0 + para['reg1']*loss1 + para['reg2']*loss2
+
+    loss_list[0].append(loss0.item())
+    loss_list[1].append(loss1.item())
+    loss_list[2].append(loss2.item())
 
     optimiser.zero_grad()
     loss.backward()
@@ -130,9 +133,27 @@ for e in range(epochs):
     pbar.update()
     #print(loss.item())
 
-#|%%--%%| <dyJzB2ZAcV|6rxWjy8s0O>
+# |%%--%%| <EyX0aMsDTz|I83gApPhjy>
 
-print(loss.item())
 plt.figure()
-plt.plot(model.r_dsc, model.ptl_rs[0])
+plt.plot(model.r_dsc.detach(), ptl_md[0].detach())
 plt.show()
+
+# |%%--%%| <I83gApPhjy|HGfqpL7M7D>
+
+plt.figure()
+plt.plot(model.r_dsc.detach(), rad_md[0].detach())
+plt.show()
+
+# |%%--%%| <HGfqpL7M7D|9PeZd3M3YA>
+
+plt.figure()
+j = 0
+print(loss0.item(),loss1.item(),loss2.item())
+plt.plot(np.arange(j,epochs), loss_list[0][j:])
+plt.plot(np.arange(j,epochs), loss_list[1][j:])
+plt.plot(np.arange(j,epochs), loss_list[2][j:])
+
+# |%%--%%| <9PeZd3M3YA|2yzR9m31Ac>
+
+
