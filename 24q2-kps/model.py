@@ -94,7 +94,7 @@ class PathModule(CommonModule):
         
         self.vec_1, self.vec_f = (nn.Parameter(torch.rand(self.unif_dim)), nn.Parameter(torch.rand(self.unif_dim)))
 
-    def MaskAtt(self, compat, route, objectives):
+    def MaskAtt(self, compat, route, obj_list, hml):
         exclude_l = route.T.clone().detach()
         
         # allow already traversed paths
@@ -102,15 +102,15 @@ class PathModule(CommonModule):
         #    for i in range(1,exclude_l.shape[1]):
         #        compat[self.batch_arr,exclude_l[:,i]] = -float('inf')
         
-        for i in range(objectives.shape[0]):
-            if not (route == objectives[i]).any():
+        for i in range(hml.shape[0]):
+            if not (obj_list[route] == hml[i]).any():
                 compat[:,0] = -float('inf')
                 break
         # if all u_dm are -inf; all places are visited, stay at 0; zero contr. to cost
         route[torch.all(compat == -float('inf'), dim = 1), 0] = 1
         return route
 
-    def forward(self, hvec, hbar, objs, baseline = False):
+    def forward(self, hvec, hbar, obj_list, hml, baseline = False):
         route = torch.zeros(1, self.batch_dim , dtype = torch.int, device = self.device)
         final_log_prob = torch.zeros(self.batch_dim)
         # run decoder
@@ -126,7 +126,7 @@ class PathModule(CommonModule):
             torch.einsum('xij,abx->abij', self.vv_p, hvec))
 
             compat = torch.einsum('abx,aibx->aib',qv,kv)/np.sqrt(self.head_dim) # batch dim x node dim x head num
-            compat_mask = self.MaskAtt(compat, route, objs)
+            compat_mask = self.MaskAtt(compat, route, obj_list, hml)
             weight = F.softmax(compat_mask, dim = 1) # weight : batch dim x node dim x head num
             # (c) x node dim  X   
             received_vec = torch.einsum('axb,axbi->abi', weight, vv) # recvec : batch dim x head num x head dim
@@ -136,7 +136,7 @@ class PathModule(CommonModule):
             kvf = self.kvf_p(hvec) # hvf : batch dim x node dim x head dim = unif dim
 
             compatf = self.clipp * torch.tanh(torch.einsum('ax,aix->ai', qvf, kvf)/np.sqrt(self.unif_dim)) # compatf : batch dim x node dim
-            compatf_mask = self.MaskAtt(compatf, route, objs)
+            compatf_mask = self.MaskAtt(compatf, route, obj_list, hml)
             
             policy = F.softmax(compatf_mask, dim = 1)
             
@@ -161,8 +161,10 @@ class TPPModel(nn.Module):
         self.encoder = encoder
         self.decoder = decoder
 
-    def forward(self, adj_matr, objs, baseline = False):
+    def forward(self, adj_matr, obj_list, hml, baseline = False):
         hvec, hbar = self.encoder(adj_matr)
-        route, final_log_prob = self.decoder(hvec, hbar, objs, baseline)
+        route, final_log_prob = self.decoder(hvec, hbar, obj_list, hml, baseline)
+
+        print(route)
 
         return route.T, final_log_prob

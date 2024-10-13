@@ -3,18 +3,16 @@ import torch
 import torch.optim as optim
 import torch.multiprocessing as mp
 
-from model import *; from utils import *; from config import *
-
+from model import *; from utils import *
 from tqdm.auto import tqdm
 
 def run(rank, config:Config):
     # init
     print(f"Parallel on rank {rank}.")
-    setup(rank, config.world_size)
     pbar1 = tqdm(range(epochs*steps), desc='Progress', total=epochs*steps, leave = True, position=0, colour='blue')
-    #scaler = torch.cuda.amp.GradScaler()
-    
-    # generate module objects, parameter passing
+
+    adj_matr, obj_coll, hml_coll = initdata(hml_len = 4)
+
     paras = para(config.hp, CommonModule)
     ModelT = (Encoder(**paras, enc_layers = config.hp['enc_layers'], device = rank),
               PathModule(**paras, clipp = config.hp['clipp'], device = rank))
@@ -25,21 +23,15 @@ def run(rank, config:Config):
 
     optimiser = optim.Adam(model.parameters(), lr)
 
-    cost_graph = []
-
     for _ in range(epochs):
         cost_t = 0
         for _ in range(steps):
-            route, cost, log_p = model(supply_tr, price_tr, demand_tr, cost_tr)
-            _, baseline, _ = baseline_model(supply_tr, price_tr, demand_tr, cost_tr, baseline = True)
-
-            loss = torch.mean((cost - baseline) * log_p)
-            cost_t += torch.mean(cost).item()/steps
+            # hml = randomly sample
+            hml = hml_coll
+            route, loss, log_p = model(adj_matr, obj_coll, hml)
+            _, baseline, _ = model(adj_matr, obj_coll, hml, baseline = True)
             
             optimiser.zero_grad()
-            #scaler.scale(loss).backward()
-            #scaler.step(optimiser)
-            #scaler.update()
             loss.backward()
             optimiser.step()
             

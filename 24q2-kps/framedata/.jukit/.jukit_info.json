@@ -1,0 +1,1 @@
+{"cmd": "\ndf_frames \nwith open(\"df_frames.data\", \"wb\") as f:\n    pickle.dump(df_frames, f)\n", "cmd_opts": " --cell_id=Z2tOXiEJ3Y -s", "import_complete": 1, "terminal": "nvimterm"}
