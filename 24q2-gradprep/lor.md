@@ -13,42 +13,45 @@
         - Jan 24'~ : Numerical calculations
     - Writing academic papers
 
-- Courses : excellence, passionate participation
-    - Note : Classical Mechanics I, II, Mathematical Physics II, Advanced Mechanics
-    - Presentation on string theory in Adv. Mech.
-- Research : tenacity in overcoming adversities, passion in learning new skills and 
-        - Analytic calculations utilising Mathematica
-        - 
-    - Self study field theory, gravity etc.
-        - Weekly presentations on things he studied
-            - Attention to detail in mathematics and passion towards topics presented
-            - Particularly memorable : online presentations during exchange student about paper on BRST formalism, talk on inflation cosmology given to freshmen
+Through teaching him and working closely with him as his research advisor for a year and a half, I can advocate that he is one of the most brilliant students I have encountered. He has consistently displayed a great passion in both studying textbook physics and keeping up with current research, and a tenacious ability to overcome adversities. 
 
-Through teaching him and advising his research for over a year, I can advocate that he is one of the most brilliant students I have encountered. He has consistently displayed a great passion in studying both textbook physics and keeping up with current research, a tenacious ability to overcome adversities, and the 
+Ever since I taught him in his sophomore courses, he proved to be one of the brightest students I have taught in terms of his curiosity for deeper structures in physics. In his presentation on string theory during my Advanced Mechanics course, he showed a far greater understanding and appreciation of theoretical physics, exceeding the expectations I typically hold for undergraduate students. This was complemented by his commitment to self studying field theory and gravity, where he would give weekly presentations alongside his research. Two examples that stood out were one on a paper on the BRST formalism and a talk he gave on inflation cosmology to freshmen students, both of which were delivered with remarkable clarity and enthusiasm.
+
+During our research on holography, he collaborated with other students to perform analytic and numerical calculations for correlation functions in a holographic setting. In this period he showed me a great passion to learn the relevant tools and skills for conducting research in physics, and made leading contributions to each problem he was assigned. He often made remarks connecting his work to the material he was self studying, passionately discussing on how he had internalised the methodology. Through this he demonstrated his oustanding enthusiasm for learning physics, and also assissted his juniors' research in the process.
 
 ## Prof. Hwang
-fast learner
-As his research advisor for Fall 2023, I was continued to be surprised by his immense passion in studying not only physics but also the mathematical side of the theory, and how quickly he could understand research problems and begin working on them. I most strongly recommend him for your graduate program, as 
+
+- Research
+    - Numerical methods
+        - Parallel computation, GPU acceleration via pytorch and cuda
+        - Various random sampling methods; MCMC; Metropolis-Hastings
+    - Presentations
+        - Theory from Kai Lai Chungs book
+
+As his research advisor for Fall 2023, I was continuously impressed by his immense passion in studying both physical and mathematical theory, and how quickly he could understand research problems and engage with them.
+
+Advising his research in numerically confirming a conjecture between diffusion first-last passage and electric potential problems, his rapid understanding of the problem and implementation using advanced numerical tools without external guidance gave me the impression he was one of the brightest undergraduate students I had encountered. When we discovered our results were indeterminate about the conjecture, he approached the problem in an analytical and well structured manner. He was very adaptive and responsive to any feedback I had, and did not hesitate to reach out with clear and insightful questions. 
+
+What also stood out was his efforts to understand the underlying sophisticated theory, and his ability to communicate it. I was particularly impressed by his investigation and presentation on the Feynman-Kac formula, which demonstrated not only a firm grasp on the subject but also a great amount of attention to the details of the problem. His deep mathematical appreciation for the topics he was covering and clear passion in communicating his findings made his work thorough and insightful.
 
 ## Prof. Kim
-overcoming difficulties, creativity
 
-He was one of the top students in my General Relativity course, and within the time he has participated in my research group he has shown an outstanding talent in conducting research on deep learning in physics. His care to detail and keen eye for nuance pairs with his resilience towards obstacles in research, making him a brilliant candidate for your graduate program.
+- Courses taken
+    - General Relativity
+- Research
+    - Summer internship
+        - Reproducing of papers; learning AdS DL method
+        - Independent research project : learning the interpolating function in MOND with neural ODEs
+    - KPS Undergraduate Research Competition
+        - Using reinforcement learning to find optimal quantum circuit configuration
+        - Independent research project
+    - Tensor network seminar
+    - Inverse spectral problem in Schrodingers equation
+        - Using deep neural network methods
 
-Under my group he participated in two research programs and a seminar, all three which I gave him a leading role based on his foremost performance in an internship this summer. The research I directly advised him on was on applying deep learning to recover potentials from energy spectra. Throughout research his conduct was extremely diligent and meticulous; his survey of numerical methods appropriate for the project was particularly memorable, as it was clearly communicated and was followed by a thorough plan for further investigation. This was further demonstrated by him actively participating in discussion with his advisors and colleagues in his attempts to understand any underlying issues. Simultaneously, he lead an independent research project 
+He was one of the top students in my General Relativity course, and within the time he has participated in my research group he has shown an outstanding talent in conducting research in theoretical physics. His care to detail and keen eye for nuance pairs with his resilience towards obstacles in research, making him a brilliant candidate for your graduate program.
 
-# Personal Statement
+Over the course of half a year of involvement with my group, he participated in two significant research programs and a seminar, all three which I gave him a leading role based on his foremost performance in an internship this summer. The research I directly advised him on was on applying deep learning to recover potentials from energy spectra, a highly interdisciplinary area of research requiring a wide scope of skills and knowledge. Throughout research his conduct was diligent and meticulous; his survey of numerical methods appropriate for the project was particularly memorable, as it was clearly communicated and was followed by a thorough plan for further investigation. 
 
-- Military service
-- Orchestra
-- Exchange student in UC Berkeley
+In addition to his technical skills, he exhibited a resilience against research challenges with his tenacity and creativity. Throughout our work together, he actively participated in discussion with his advisors and colleagues in his attempts to understand any underlying issues, adapting his research methods and proposing new strategies.
 
-My experiences in the ROK Air Force, a university orchestra, and as an exchange student at UC Berkeley have all taught me to adapt and work well in diverse settings. Each role gave me skills in discipline, collaboration, and cultural awareness that I believe will be valuable in graduate school.
-
-In the ROK Air Force, I worked as an interpreter on a base shared with the U.S. Air Force, where I handled not only translation but also customer service, tech support, and administrative work. Six months in, my senior was dismissed unexpectedly, and I had to take on his responsibilities while balancing my own. This forced me to find ways to streamline my work and create an efficient workflow, which I developed within a month. This experience taught me that discipline is not just about following orders—it’s also about setting high standards for yourself and working efficiently to reach them. This approach has prepared me to manage complex tasks in my future studies.
-
-My time in my university’s orchestra, where I play the clarinet, also taught me the importance of balancing personal effort with group commitment. Our performance in autumn 2023 was a high point, as we worked to bring together new members after years without live performances due to COVID. As someone who often takes on an organizing role, I understood that the challenge was not just musical but also about keeping people engaged. This experience taught me how to create a motivating environment, an ability that I know will be useful in collaborative research settings.
-
-Finally, my semester at UC Berkeley gave me a new perspective on both academics and diversity. Although I initially chose Berkeley because it was the best option my university offered, I quickly came to value its open and collaborative academic culture. I noticed that students there were much more active in asking questions, which encouraged me to engage more actively myself. Outside the classroom, I experienced a level of diversity and openness that was new to me, coming from a more homogeneous culture in Korea. This made me realize the importance of diverse viewpoints and strengthened my commitment to working in multicultural environments.
-
-Through these experiences, I’ve become more adaptable, collaborative, and culturally aware. I am excited to bring these skills to graduate school, where I am eager to take on new challenges and contribute to a diverse academic community.
