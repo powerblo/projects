@@ -1,9 +1,7 @@
 import torch
 import os
 import torch.distributed as dist
-import matplotlib.pyplot as plt
-import networkx as nx
-import itertools
+import pickle
 
 # torch utils
 def setup(rank, world_size):
@@ -42,15 +40,22 @@ def ospttest(r, br):
 
     return p_value
 
-# pyplot
-def plot(graph):
-    plt.figure(figsize=(10, 6))
-    for r in graph:
-        plt.plot(r, label=f'Rank {graph.index(r)}')
-    plt.xlabel('Epochs')
-    plt.ylabel('Loss')
-    plt.title('Training Loss over Epochs')
-    plt.legend()
-    plt.grid(True)
-    plt.savefig('loss.png')
+def initdata(hml_len):
+    with open("adj_mat.data", "rb") as r:
+        adj_mat = pickle.load(r)
+    adj_mat_ts = torch.tensor(adj_mat)
 
+    with open("df_frames.data", "rb") as r:
+        frames_data = pickle.load(r)
+    fir = frames_data.drop(columns=['index']).map(lambda x: int(x[1]))
+    sec = frames_data.drop(columns=['index']).map(lambda x: int(x[4]))
+    vals = fir*8 + sec
+    obj_ts = torch.tensor(vals.values)
+
+    with open(f"~/workspace/rawdata/framedata/h_db_{hml_len}.data", "rb") as r:
+        hml_data = pickle.load(r)
+    hml_data_l = [item['sym'] for item in hml_data]
+    vals = [[8*x+y for x, y in item] for item in hml_data_l]
+    hml_coll_ts = torch.tensor(vals)
+
+    return adj_mat_ts, obj_ts, hml_coll_ts 

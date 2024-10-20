@@ -70,7 +70,7 @@ para = {
 
 
 #evl_tr = -torch.arange(1,100).to(torch.float32)**(-2)/1000
-evl_tr = torch.linspace(-0.05,0.1,1000)
+evl_tr = torch.linspace(-0.05,1,1000)
 
 model = EvalEig(para, evl_tr)
 

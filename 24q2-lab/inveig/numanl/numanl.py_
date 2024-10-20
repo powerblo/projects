@@ -1,0 +1,298 @@
+
+import torch, torch.nn as nn
+import numpy as np, matplotlib.pyplot as plt
+from tqdm.auto import tqdm
+from itertools import product
+from torchdiffeq import odeint
+
+def seq_mlp(init, mlp, fin, act):
+    modules = [nn.Linear(init, mlp[0]), act]
+    for i in range(len(mlp) - 1):
+        modules.append(nn.Linear(mlp[i], mlp[i+1]))
+        modules.append(act)
+
+    modules.append(nn.Linear(mlp[-1], fin)) #self.spl for spline
+
+    return modules
+
+# |%%--%%| <4EsaucioNG|OgpsVD15m6>
+
+class EvalEig(nn.Module):
+    def __init__(self):
+        super().__init__()
+    
+    def set_para(self, rn, rm, p0):
+        self.rn = rn
+        self.rm = torch.tensor(rm).view(-1,1,1)
+        self.p0 = torch.tensor(p0).view(1,-1,1)
+        
+        # rm.shape x 1 x rn
+        self.r_dsc0 = torch.linspace(1/self.rn, 1, self.rn).view(1,1,-1) * self.rm
+        self.r_dsc1 = torch.linspace(-1, 1, self.rn).view(1,1,-1) * self.rm/2
+
+        # rm.shape x p0.shape x rn
+        sho_ptl = (self.r_dsc1**2) * self.p0
+        clm_ptl = (-1/self.r_dsc0) * self.p0 # e^2/4pie0 = 1
+        ykw_ptl = (-torch.exp(-self.r_dsc0*self.p0/100)/self.r_dsc0) * self.p0
+
+        # 4 x rm.shape * p0.shape x rn
+        self.dsc_ptl_list = torch.stack([
+            torch.zeros(self.rm.shape[0]*self.p0.shape[1], self.rn),
+            sho_ptl.view(-1, self.rn),
+            clm_ptl.view(-1, self.rn),
+            ykw_ptl.view(-1, self.rn)
+            ], dim = 0)
+    
+    # 4 x rm.shape * p0 x rn evl, 4xrnxrn evec; inftywell, sho, coulomb, yukawa
+    def evl_anl(self):
+        integ = torch.arange(1,self.rn+1).view(1,1,-1).expand(self.rm.shape[0],self.p0.shape[1],-1)
+        bd = self.dsc_ptl_list.shape[1]
+        
+        iw_evl = (integ)**2*np.pi**2/self.rm**2
+        sho_evl = (-1+2*integ)*torch.sqrt(self.p0)
+        # added x1/2 factor : why?
+        clm_evl = (-1/(4*integ**2))*self.p0**2
+        ykw_evl = torch.zeros(self.rm.shape[0],self.p0.shape[1],self.rn)
+
+        evl_anl = torch.stack([
+            iw_evl.view(bd,-1),
+            sho_evl.view(bd,-1),
+            clm_evl.view(bd,-1),
+            ykw_evl.view(bd,-1)
+            ])
+        
+        rmv = self.rm.view(-1,1,1,1)
+        p0v = self.p0.view(1,-1,1,1)
+        intv = integ.view(self.rm.shape[0],self.p0.shape[1],-1,1)
+        rdsc0v = self.r_dsc0.view(self.rm.shape[0],1,1,self.rn)
+        rdsc1v = self.r_dsc1.view(self.rm.shape[0],1,1,self.rn)
+        iw_evec = torch.sin((intv*np.pi/rmv)*rdsc0v)
+        #sho_evec = pov**(1/8)*torch.exp(-pov**(1/2)*rdsc1v**2/2)*
+
+        return evl_anl
+
+    def evl_fd(self):
+        dsc_ptl_list_1d = self.dsc_ptl_list.view(-1, self.rn)
+
+        dsc_lap = (-2*torch.eye(self.rn) + torch.diag(torch.ones(self.rn-1),1) + torch.diag(torch.ones(self.rn-1),-1)).view(1,1,self.rn,self.rn).expand(1,1,self.dsc_ptl_list.shape[0],self.rn,self.rn)/(self.rm.view(-1,1,1,1,1)/self.rn)**2
+        dsc_lap = dsc_lap.expand(self.rm.shape[0],self.p0.shape[1],self.dsc_ptl_list.shape[0],self.rn,self.rn)
+        dsc_ptl = torch.diag_embed(dsc_ptl_list_1d)
+        dsc_hmt = -dsc_lap.reshape(-1,self.rn,self.rn) + dsc_ptl # h^2/2m = 1
+        
+        evl_fd_bd, evec_fd_bd = torch.linalg.eigh(dsc_hmt)
+        evl_fd = evl_fd_bd.view(self.dsc_ptl_list.shape[0],-1,self.rn)
+        evec_fd = evec_fd_bd.view(self.dsc_ptl_list.shape[0],-1,self.rn,self.rn)
+
+        return evl_fd, evec_fd
+
+    def ode_eq(self, r, init_rad):
+        rad, rad_d = init_rad[:,0], init_rad[:,1]
+        #rad, rad_d = init_rad[0], init_rad[1]
+        ptl_rs = self.ptl_ode(r) * torch.ones(self.guess_n)
+        rad_dd = (ptl_rs - self.evl_guess) * rad
+        derivs = torch.stack([rad_d, rad_dd.squeeze(-1)],dim=-1)
+        return derivs
+
+    def set_evl_data(self, ptl, p0, rm, evl_guess):
+        if ptl == "iw":
+            self.evl_guess = torch.linspace(0,p0*100,self.guess_n)
+            self.ptl_ode = lambda r : 0
+            self.rk_space = [torch.tensor([0.,rm]), rm/10]
+        elif ptl == "sho":
+            self.evl_guess = torch.linspace(0,p0*100,self.guess_n)
+            self.ptl_ode = lambda r : r**2 * p0
+            self.rk_space = [torch.tensor([-1.,1.]).to(torch.float32), 0.05]
+        elif ptl == "clm":
+            self.evl_guess = torch.linspace(evl_guess*1.01,0,self.guess_n)
+            self.ptl_ode = lambda r : -p0/r
+            self.rk_space = [torch.tensor([1e-1,rm]), 0.1]
+
+    def evl_node(self, evl_guess): # evl_guess : guess for ground energy
+        self.guess_n = self.rn
+        #init_rad_rs = torch.tensor([0.,1.])
+        init_rad_rs = torch.stack([torch.zeros(self.guess_n),
+                                   torch.ones(self.guess_n)*1e-20],dim=-1)
+        
+        evl_node = []
+        uinfty_node = []
+
+        for rm_i in range(self.rm.shape[0]):
+            for p0_i in range(self.p0.shape[1]):
+                rm, p0 = self.rm[rm_i,0,0], self.p0[0,p0_i,0]
+                
+                self.set_evl_data("iw", p0, rm, evl_guess[0,ji(rm_i,p0_i),0])
+                iw_rad = odeint(self.ode_eq, init_rad_rs, self.rk_space[0], 
+                                 method = 'rk4', options=dict(step_size = self.rk_space[1]))
+                iw_radinf = iw_rad[-1,:,0]
+                
+                iw_vals = []
+                for i in range(iw_radinf.shape[0]-1):
+                    if iw_radinf[i]*iw_radinf[i+1]<0:
+                        iw_vals.append(self.evl_guess[i].item())
+                iw_vals = torch.tensor(iw_vals)
+
+                self.set_evl_data("sho", p0, rm, evl_guess[1,ji(rm_i,p0_i),0])
+                sho_rad = odeint(self.ode_eq, init_rad_rs, self.rk_space[0], 
+                                 method = 'rk4', options=dict(step_size = self.rk_space[1]))
+                sho_radinf = sho_rad[-1,:,0]
+                
+                sho_vals = []
+                for i in range(sho_radinf.shape[0]-1):
+                    if sho_radinf[i]*sho_radinf[i+1]<0:
+                        sho_vals.append(self.evl_guess[i].item())
+                sho_vals = torch.tensor(sho_vals)
+
+                self.set_evl_data("clm", p0, rm, evl_guess[2,ji(rm_i,p0_i),0])
+                clm_rad = odeint(self.ode_eq, init_rad_rs, self.rk_space[0], 
+                                 method = 'rk4', options=dict(step_size = self.rk_space[1]))
+                clm_radinf = clm_rad[-1,:,0]
+                   
+                clm_vals = []
+                for i in range(clm_radinf.shape[0]-1):
+                    if clm_radinf[i]*clm_radinf[i+1]<0:
+                        clm_vals.append(self.evl_guess[i].item())
+                clm_vals = torch.tensor(clm_vals)
+                
+                plt.figure()
+                plt.xlabel('E')
+                plt.ylabel('log|u(infty)|')
+                plt.plot(self.evl_guess,torch.log(torch.abs(clm_radinf)))
+
+                evl_node.append([iw_vals, sho_vals, clm_vals])
+        
+        return evl_node
+
+
+# |%%--%%| <OgpsVD15m6|P85EjLGoIH>
+
+# parameters : rn, md, ptl, rm, p0
+# indices : rn, md, ptl, rm*p0, En
+md = ['anl', 'fd', 'node']
+ptl = ['iw', 'sho', 'clm', 'ykw']
+name = ['N_r', 'md', 'ptl', 'r_m', 'a']
+
+def ji(rm, p0):
+    return len(para['p0'])*rm + p0
+
+def per_a_graph_e(evl_list, e, cutoff):
+
+    def range_i(i):
+        return range(len(t[i]))
+
+    t = [para['rn'], md, ptl, para['rm'], para['p0']]
+    
+    a = [0,1,2,3,4]
+    a.remove(e[0])
+    if len(e) == 1:
+        for i0, i1, i2, i3 in product(range_i(a[0]), range_i(a[1]), range_i(a[2]), range_i(a[3])):
+            plt.figure()
+            plt.title(f'{name[a[0]]}={t[a[0]][i0]}, {name[a[1]]}={t[a[1]][i1]}, {name[a[2]]}={t[a[2]][i2]}, {name[a[3]]}={t[a[3]][i3]}')
+            for ie in range_i(e[0]):
+                ii = [i0,i1,i2,i3]
+                ii.insert(e[0],ie)
+                plt.plot(range(cutoff), evl_list[ii[0]][ii[1]][ii[2],ji(ii[3],ii[4]),:cutoff], label=f'{name[e[0]]}={t[e[0]][ie]}')
+                plt.legend()
+    elif len(e) == 2:
+        a.remove(e[1])
+        for i0, i1, i2 in product(range_i(a[0]), range_i(a[1]), range_i(a[2])):
+            plt.figure()
+            plt.title(f'{name[a[0]]}={t[a[0]][i0]}, {name[a[1]]}={t[a[1]][i1]}, {name[a[2]]}={t[a[2]][i2]}')
+            for i3, i4 in product(range_i(e[0]), range_i(e[1])):
+                ii = [i0,i1,i2]
+                ii.insert(e[0],i3)
+                ii.insert(e[1],i4)
+                plt.plot(range(cutoff), evl_list[ii[0]][ii[1]][ii[2],ji(ii[3],ii[4]),:cutoff], label=f'{name[e[0]]}={t[e[0]][i3]},{name[e[1]]}={t[e[1]][i4]}')
+                plt.legend()
+    elif len(e) == 3:
+        a.remove(e[1])
+        a.remove(e[2])
+        for i0, i1 in product(range_i(a[0]), range_i(a[1])):
+            plt.figure()
+            plt.title(f'{name[a[0]]}={t[a[0]][i0]}, {name[a[1]]}={t[a[1]][i1]}')
+            for i2, i3, i4 in product(range_i(e[0]), range_i(e[1]), range_i(e[2])):
+                ii = [i0,i1]
+                ii.insert(e[0],i2)
+                ii.insert(e[1],i3)
+                ii.insert(e[2],i4)
+                plt.plot(range(cutoff), evl_list[ii[0]][ii[1]][ii[2],ji(ii[3],ii[4]),:cutoff], label=f'{name[e[0]]}={t[e[0]][i2]},{name[e[1]]}={t[e[1]][i3]},{name[e[2]]}={t[e[2]][i4]}')
+            plt.legend()
+
+#|%%--%%| <P85EjLGoIH|anNJdZwF5v>
+
+# heuristics : sho : lower rm preferred; clm : higher rm preferred
+para = {
+        'rm' : [2000],
+        'rn' : [2000],
+        'p0' : [0.1]
+}
+
+model = EvalEig()
+
+#|%%--%%| <anNJdZwF5v|fP9A1S54sa>
+
+evl_list = []
+
+for rn in para['rn']:
+    model.set_para(rn, para['rm'], para['p0'])
+
+    evl_anl = model.evl_anl()
+    #evl_fd, _ = model.evl_fd()
+    #evl_node = 
+
+    evl_node = model.evl_node(evl_anl)
+
+    #evl_rn = [evl_anl, evl_fd, evl_node]
+    #evl_list.append(evl_rn)
+
+
+#|%%--%%| <fP9A1S54sa|xQ1fWdypkl>
+
+print(print(evl_node))
+
+#|%%--%%| <xQ1fWdypkl|6FPNXuUgXw>
+
+plt.figure()
+#plt.plot(range(len(evl_anl[2,0])), evl_anl[2,0], label='analytic')
+#plt.plot(range(len(evl_fd[2,0])), evl_fd[2,0], label='fin. diff.')
+#plt.plot(range(len(evl_node[0][2])), evl_node[0][2], label='node')
+plt.plot(range(15), evl_anl[2,0][:15], label='analytic')
+#plt.plot(range(10), evl_fd[2,0][:10], label='fin. diff.')
+plt.plot(range(len(evl_node[0][2])), evl_node[0][2], label='node')
+plt.xlabel('index')
+plt.ylabel('E')
+plt.legend()
+plt.plot()
+
+#|%%--%%| <6FPNXuUgXw|efrVSpqxsu>
+
+# rn, md, ptl, rm, p0
+#per_a_graph_e(evl_list, e=[1,3], cutoff=10)
+per_a_graph_e(evl_list, e=[3], cutoff=1000)
+#per_a_graph_e(evl_list, e=[1,3,4], cutoff=30) # cutoff at minimum rn
+#per_a_graph_e(evl_list, e=[0], cutoff=min(para['rn'])) # cutoff at minimum rn
+
+#|%%--%%| <efrVSpqxsu|AoX2f5F6JC>
+
+#plt.figure()
+#plt.plot(torch.linspace(0,100,para['rn'][0]),delu[0])
+#print(delu)
+#plt.plot(torch.linspace(0,1,para['rn'][0]),delu)
+
+vals = []
+
+for i in range(delu.shape[0]-1):
+    if delu[i]*delu[i+1]<0:
+        vals.append(torch.linspace(-para['p0'][0]/30,para['p0'][0]/30,para['rn'][0])[i].item())
+
+print(delu)
+
+#plt.figure()
+#plt.plot(range(len(vals)),vals,label='node')
+#plt.plot(range(len(vals)),evl_list[0][0][2,0,:len(vals)],label='anl')
+#plt.plot(range(len(vals)),evl_list[0][1][2,0,:len(vals)],label='fd')
+#plt.legend()
+
+#plt.figure()
+#plt.xlabel('E')
+#plt.ylabel('log|u(infty)|')
+#plt.plot(self.evl_guess,torch.log(torch.abs(clm_radinf)))
