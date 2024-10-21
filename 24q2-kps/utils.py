@@ -9,9 +9,6 @@ def setup(rank, world_size):
     os.environ['MASTER_PORT'] = '12355'
     dist.init_process_group("gloo", rank=rank, world_size=world_size)
 
-def cleanup():
-    dist.destroy_process_group()
-
 def para(source, target_class):
     return {k: v for k, v in source.items() if k in target_class.__init__.__code__.co_varnames[1:target_class.__init__.__code__.co_argcount]}
 
@@ -52,7 +49,8 @@ def initdata(hml_len):
     vals = fir*8 + sec
     obj_ts = torch.tensor(vals.values)
 
-    with open(f"~/workspace/rawdata/framedata/h_db_{hml_len}.data", "rb") as r:
+    #with open(f"~/workspace/rawdata/framedata/h_db_{hml_len}.data", "rb") as r:
+    with open(f"C:\\Users\\Hanse Kim\\Documents\\sipsiboy\\framedata\\h_db_{hml_len}.data", "rb") as r:
         hml_data = pickle.load(r)
     hml_data_l = [item['sym'] for item in hml_data]
     vals = [[8*x+y for x, y in item] for item in hml_data_l]

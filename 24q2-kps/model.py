@@ -68,7 +68,8 @@ class Encoder(CommonModule):
         hvec_l = self.init_embed(adj_matr) # embedding : batch dim x node dim x unif dim
         for l in range(self.encoder_layers):
             compat, vv_l = self.compat(self.qv_p[l], self.kv_p[l], self.vv_p[l], hvec_l)
-            compat_mask = compat*adj_matr.unsqueeze(-1) # mask non adjacent nodes 
+            adj_matr_n = torch.where(adj_matr==0., -1e10, adj_matr)
+            compat_mask = compat*(adj_matr_n.unsqueeze(-1)) # mask non adjacent nodes 
             mha_l = self.attention(compat_mask, vv_l, self.ov_p[l])
             
             hhat_l = self.bn1[l](hvec_l + mha_l)
@@ -92,34 +93,37 @@ class PathModule(CommonModule):
         self.qvf_p = nn.Linear(self.unif_dim, self.unif_dim, device = self.device)
         self.kvf_p = nn.Linear(self.unif_dim, self.unif_dim, device = self.device)
         
-        self.vec_1, self.vec_f = (nn.Parameter(torch.rand(1,self.unif_dim)), nn.Parameter(torch.rand(1,self.unif_dim)))
+        self.vec_1, self.vec_f = (nn.Parameter(torch.rand(1,self.batch_dim,self.unif_dim, device=self.device)), nn.Parameter(torch.rand(1,self.batch_dim,self.unif_dim, device = self.device)))
 
-    def MaskAtt(self, compat, route, obj_list, hml):
-        exclude_l = route.T.clone().detach()
-        
-        # allow already traversed paths
-        #if torch.any(exclude_l > 0):
-        #    for i in range(1,exclude_l.shape[1]):
-        #        compat[self.batch_arr,exclude_l[:,i]] = -float('inf')
-        
-        for b in range(self.batch_dim):
-            for i in range(hml.shape[1]):
-                avail = obj_list[route][:,b,:].view(-1)
-                if not (avail == hml[b,i]).any():
-                    compat[b,0] = -float('inf')
-        # if all u_dm are -inf; all places are visited, stay at 0; zero contr. to cost
-        #route[torch.all(compat == -float('inf'), dim = 1), 0] = 1
-        return compat #route
+    def MaskAtt(self, compat, route, adj_matr, obj_list, hml):
+        compat = compat.reshape(compat.shape[0],compat.shape[1],-1)
 
-    def forward(self, hvec, hbar, obj_list, hml, baseline = False):
+        avail = obj_list[route.transpose(0,1)].reshape(self.batch_dim,-1)
+        matches_a = (hml.unsqueeze(2) == avail.unsqueeze(1))
+        matches = torch.sum(matches_a, dim = 2, dtype=torch.bool).unsqueeze(-1)
+        
+        if torch.isin(0,hml):
+            matches[:,0,0] = 1
+
+        check = matches.all(dim=1)# * adj_matr.squeeze(0)[route[-1],0].unsqueeze(-1).to(torch.bool)
+        check_demand = torch.concat((check,~check*torch.ones(self.batch_dim, self.node_dim-1,dtype=torch.bool,device=self.device)),dim=1).unsqueeze(-1).expand(compat.shape)
+        compat_1 = torch.where(check_demand, compat, -1e10*torch.ones_like(compat))
+
+        return compat_1
+
+    def forward(self, hvec, hbar, adj_matr, obj_list, hml, baseline = False):
         route = torch.zeros(1, self.batch_dim , dtype = torch.int, device = self.device)
-        final_log_prob = torch.zeros(self.batch_dim)
+        final_log_prob = torch.zeros(self.batch_dim, device = self.device)
+        length = torch.zeros(self.batch_dim, device = self.device)
+
+        hbar_b = hbar.view(1,1,-1).expand(1,self.batch_dim,-1)
+
         # run decoder
         for t in range(self.node_dim):
             if route.shape[0] == 1:
-                vec_concat = torch.concat((hbar, self.vec_1, self.vec_f), dim = 1)
+                vec_concat = torch.concat((hbar_b, self.vec_1, self.vec_f), dim = 2).squeeze(0)
             else:
-                vec_concat = torch.concat((hbar, hvec[:,route[t-1]].squeeze(0), hvec[:,route[1]].squeeze(0)), dim = 1)
+                vec_concat = torch.concat((hbar_b, hvec[:,route[t-1]], hvec[:,route[1]]), dim = 2).squeeze(0)
 
             qv, kv, vv = ( 
             torch.einsum('xij,ax->aij', self.qv_p, vec_concat), # batch dim x head num x head dim
@@ -127,7 +131,7 @@ class PathModule(CommonModule):
             torch.einsum('xij,abx->abij', self.vv_p, hvec))
 
             compat = torch.einsum('abx,aibx->aib',qv,kv)/np.sqrt(self.head_dim) # batch dim x node dim x head num
-            compat_mask = self.MaskAtt(compat, route, obj_list, hml)
+            compat_mask = self.MaskAtt(compat, route, adj_matr, obj_list, hml)
             weight = F.softmax(compat_mask, dim = 1) # weight : batch dim x node dim x head num
             # (c) x node dim  X   
             received_vec = torch.einsum('axb,axbi->abi', weight, vv) # recvec : batch dim x head num x head dim
@@ -137,9 +141,11 @@ class PathModule(CommonModule):
             kvf = self.kvf_p(hvec) # hvf : batch dim x node dim x head dim = unif dim
 
             compatf = self.clipp * torch.tanh(torch.einsum('ax,aix->ai', qvf, kvf)/np.sqrt(self.unif_dim)) # compatf : batch dim x node dim
-            compatf_mask = self.MaskAtt(compatf, route, obj_list, hml)
+            compatf_mask = self.MaskAtt(compatf, route, adj_matr, obj_list, hml).squeeze(-1)
             
             policy = F.softmax(compatf_mask, dim = 1)
+
+            #print(torch.sum(adj_matr[0,route[-1,0]]), policy[0])
             
             if baseline:
                 target = torch.max(policy, 1).indices
@@ -149,11 +155,14 @@ class PathModule(CommonModule):
             route = torch.cat((route, target.unsqueeze(0)), dim = 0)
             if torch.all(target == 0):
                 break
-        
+
             log_prob = torch.log(policy[self.batch_arr, target]) # value of policy at each target[i]
             final_log_prob += log_prob
 
-        return route, final_log_prob
+            length += 1-torch.nn.functional.relu(1-target)
+            loss = -(final_log_prob * (-length)).mean()
+
+        return route, loss, final_log_prob
 
 class TPPModel(nn.Module):
     def __init__(self, encoder, decoder):
@@ -162,10 +171,8 @@ class TPPModel(nn.Module):
         self.encoder = encoder
         self.decoder = decoder
 
-    def forward(self, adj_matr, obj_list, hml, baseline = False):
+    def forward(self, adj_matr, obj_list, hml, baseline = False): # default is setting as False
         hvec, hbar = self.encoder(adj_matr)
-        route, final_log_prob = self.decoder(hvec, hbar, obj_list, hml, baseline)
+        route, loss, final_log_prob = self.decoder(hvec, hbar, adj_matr, obj_list, hml, baseline)
 
-        print(route)
-
-        return route.T, torch.mean(route.shape[1]), final_log_prob
+        return route.T, loss, final_log_prob
