@@ -98,4 +98,4 @@ if __name__ == '__main__':
     config = Config(use_distributed_training, hyperparas)
     #loss_graph = mp.spawn(run, args=(config,), nprocs=config.world_size, join=True)
     for hml_len in range(7,8):
-        run('cpu', config, hml_len, epochs = 20)
+        run('cpu', config, hml_len, epochs = 2)
