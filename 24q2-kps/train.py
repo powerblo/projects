@@ -9,7 +9,7 @@ from torch.utils.data import DataLoader, random_split
 
 def run(rank, config:Config, hml_len, epochs):
     # init
-    lr = 1e-4
+    lr = 1e-2
     pbar1 = tqdm(range(epochs), desc='Progress', total=epochs, leave = True, position=0, colour='blue')
 
     adj_matr, obj_coll, hml_coll = initdata(hml_len)
@@ -96,5 +96,5 @@ if __name__ == '__main__':
 
     config = Config(use_distributed_training, hyperparas)
     #loss_graph = mp.spawn(run, args=(config,), nprocs=config.world_size, join=True)
-    for hml_len in range(6,9):
+    for hml_len in range(7,8):
         run('cpu', config, hml_len, epochs = 200)
