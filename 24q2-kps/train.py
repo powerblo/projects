@@ -23,7 +23,7 @@ def run(rank, config:Config, hml_len, epochs):
     model = TPPModel(*ModelT)
     optimiser = optim.Adam(model.parameters(), lr)
 
-    train_size, eval_size, test_size = int(hml_coll.shape[0]*0.4), int(hml_coll.shape[0]*0.1), int(hml_coll.shape[0]*0.1)
+    train_size, eval_size, test_size = int(hml_coll.shape[0]*0.4), int(hml_coll.shape[0]*0.4), int(hml_coll.shape[0]*0.4)
     train_size -= train_size % bd
     eval_size -= eval_size % bd
     test_size -= test_size % bd
@@ -31,6 +31,7 @@ def run(rank, config:Config, hml_len, epochs):
     hml_rand = hml_coll[torch.randperm(hml_coll.shape[0], device=rank)[:(train_size+eval_size+test_size)]]
     hml_train, hml_eval, hml_test = hml_rand[:train_size],hml_rand[train_size:train_size+eval_size],hml_rand[train_size+eval_size:]
 
+    #print(train_size, eval_size, test_size)
     adj_matr_batch = adj_matr.unsqueeze(0).to(torch.float32)
 
     loss_graph = []
@@ -84,7 +85,7 @@ if __name__ == '__main__':
             'market_dim': 20,
             'product_dim': 20,
             'unif_dim': 128,
-            'batch_dim': 64, #fix batch processing if possible
+            'batch_dim': 256, #fix batch processing if possible
             'mlp_dim' : 512,
             'vec_dim': 16,
             'enc_layers': 3,
@@ -97,4 +98,4 @@ if __name__ == '__main__':
     config = Config(use_distributed_training, hyperparas)
     #loss_graph = mp.spawn(run, args=(config,), nprocs=config.world_size, join=True)
     for hml_len in range(7,8):
-        run('cpu', config, hml_len, epochs = 200)
+        run('cpu', config, hml_len, epochs = 20)

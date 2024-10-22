@@ -10,11 +10,11 @@ if __name__ == '__main__':
     loss_graph = torch.load(f'loss_graph_{check}.pth')
     length_graph = torch.load(f'length_graph_{check}.pth')
 
-    print(hml_test)
+    print(route_test)
     print('max length : ', route_test.shape[2])
     print('average length : ', route_test.shape[2]*torch.mean(torch.min(torch.ones_like(route_test),route_test.to(torch.float32))).item())
 
-    size = 50
+    size = 100
 
     plt.figure()
     plt.plot(range(loss_graph.shape[0]-size+1), loss_graph.unfold(0,size,1).mean(dim=1))

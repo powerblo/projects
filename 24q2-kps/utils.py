@@ -50,7 +50,7 @@ def initdata(hml_len):
     obj_ts = torch.tensor(vals.values)
 
     #with open(f"~/workspace/rawdata/framedata/h_db_{hml_len}.data", "rb") as r:
-    with open(f"C:\\Users\\Hanse Kim\\Documents\\sipsiboy\\framedata\\h_db_{hml_len}.data", "rb") as r:
+    with open(f"C:\\Users\\hanse\\Documents\\h_db_{hml_len}.data", "rb") as r:
         hml_data = pickle.load(r)
     hml_data_l = [item['sym'] for item in hml_data]
     vals = [[8*x+y for x, y in item] for item in hml_data_l]

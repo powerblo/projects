@@ -2,7 +2,7 @@
     "market_dim": 20,
     "product_dim": 20,
     "unif_dim": 128,
-    "batch_dim": 64,
+    "batch_dim": 256,
     "mlp_dim": 512,
     "vec_dim": 16,
     "enc_layers": 3,

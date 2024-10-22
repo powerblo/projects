@@ -109,7 +109,14 @@ class PathModule(CommonModule):
         check_demand = torch.concat((check,~check*torch.ones(self.batch_dim, self.node_dim-1,dtype=torch.bool,device=self.device)),dim=1).unsqueeze(-1).expand(compat.shape)
         compat_1 = torch.where(check_demand, compat, -1e10*torch.ones_like(compat))
 
-        return compat_1
+        #print(adj_matr[0,route[-1]][0,:10], torch.sum(adj_matr[0,route[-1]][0]))
+
+        check2 = adj_matr[0,route[-1]].unsqueeze(-1).to(torch.bool)
+        compat_2 = torch.where(check2, compat_1, -1e30*torch.ones_like(compat_1))
+
+        #print(compat_2[0,:10,0])
+
+        return compat_2
 
     def forward(self, hvec, hbar, adj_matr, obj_list, hml, baseline = False):
         route = torch.zeros(1, self.batch_dim , dtype = torch.int, device = self.device)
@@ -119,7 +126,8 @@ class PathModule(CommonModule):
         hbar_b = hbar.view(1,1,-1).expand(1,self.batch_dim,-1)
 
         # run decoder
-        for t in range(self.node_dim):
+        max_iter = 7*5
+        for t in range(2*max_iter):
             if route.shape[0] == 1:
                 vec_concat = torch.concat((hbar_b, self.vec_1, self.vec_f), dim = 2).squeeze(0)
             else:
@@ -151,6 +159,8 @@ class PathModule(CommonModule):
                 target = torch.max(policy, 1).indices
             else:
                 target = torch.multinomial(policy, 1).view(self.batch_dim)
+
+            #print(target)
 
             route = torch.cat((route, target.unsqueeze(0)), dim = 0)
             if torch.all(target == 0):
